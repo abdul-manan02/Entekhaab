@@ -7,11 +7,27 @@ const voterSchema = new mongoose.Schema({
     },
     cnic:{
         type: String,
-        required: [true, 'Voter must have a cnic']
+        required: [true, 'Voter must have a cnic'],
+        unique: true
     },
     sims:{
         type: [String],
-        required: [true, 'At least 1 sim should be provided']
+        required: [true, 'At least 1 sim should be provided'],
+        validate: {
+            validator: function (sims) {
+              return new Set(sims).size === sims.length;
+            },
+            message: 'SIMs within the array must be unique.',
+        }
+    },
+    selectedSim:{
+        type: String,
+        validate: {
+            validator: function (value) {
+                return this.sims.includes(value); }, // Is selectedSim included in [sims]
+            message: 'selectedSim must be one of the sims',
+        },
+        required: [true, 'A sim must be selected']
     },
     permanentAddress:{
         house: Number,
@@ -62,5 +78,9 @@ const voterSchema = new mongoose.Schema({
     }
 })
 
-const Voter = mongoose.model('Voter', voterSchema)
+
+voterSchema.index({ sims: 1 }, { unique: true });
+
+
+const Voter = mongoose.model('Voter', voterSchema, 'Voter')
 export default Voter
