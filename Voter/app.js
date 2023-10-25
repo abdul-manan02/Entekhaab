@@ -1,19 +1,15 @@
 import 'dotenv/config'
-import 'express-async-errors'
 
 import express from 'express'
 const app = express()
 
 import connectDB from './db/connect.js'
-//import router from './routes/voter.js'
-
-/*
-import notFoundMiddleware from './middleware/not-found'
-import errorMiddleware from './middleware/error-handler'
-*/
+import votersRouter from './routes/voter.js'
 
 // middleware
 app.use(express.json());
+app.use('/api/v1/voter', votersRouter)
+
 
 const port = process.env.PORT || 5000
 const start = async() =>{
