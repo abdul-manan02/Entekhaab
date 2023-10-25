@@ -1,0 +1,274 @@
+[
+    {
+        "name": "Ali Hassan",
+        "CNIC": "35202-1234567-8",
+        "permanent_address": {
+            "street": "123 Main Street",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "temporary_address": {
+            "street": "45 Park Avenue",
+            "city": "Karachi",
+            "province": "Sindh"
+        },
+        "constituency": "NA-125",
+        "registered_sims": [
+            "0345-1234567",
+            "0300-9876543"
+        ]
+    },
+    {
+        "name": "Sara Ahmed",
+        "CNIC": "36103-9876543-2",
+        "permanent_address": {
+            "street": "567 Green Road",
+            "city": "Islamabad",
+            "province": "Islamabad Capital Territory"
+        },
+        "temporary_address": {
+            "street": "89 Blue Avenue",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "constituency": "PP-220",
+        "registered_sims": [
+            "0312-7654321",
+            "0321-8765432",
+            "0345-9876543"
+        ]
+    },
+    {
+        "name": "Farhan Ahmed",
+        "CNIC": "42101-3456789-0",
+        "permanent_address": {
+            "street": "321 Liberty Road",
+            "city": "Karachi",
+            "province": "Sindh"
+        },
+        "temporary_address": {
+            "street": "76 Ocean View",
+            "city": "Karachi",
+            "province": "Sindh"
+        },
+        "constituency": "NA-243",
+        "registered_sims": [
+            "0333-8765432",
+            "0340-9876543",
+            "0301-7654321"
+        ]
+    },
+    {
+        "name": "Ayesha Khan",
+        "CNIC": "38203-6543210-4",
+        "permanent_address": {
+            "street": "45 Green Lane",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "temporary_address": {
+            "street": "21 Red Street",
+            "city": "Islamabad",
+            "province": "Islamabad Capital Territory"
+        },
+        "constituency": "NA-55",
+        "registered_sims": [
+            "0310-9876543",
+            "0321-8765432"
+        ]
+    },
+    {
+        "name": "Mehmood Iqbal",
+        "CNIC": "29506-1234567-8",
+        "permanent_address": {
+            "street": "89 Blue Crescent",
+            "city": "Rawalpindi",
+            "province": "Punjab"
+        },
+        "temporary_address": {
+            "street": "12 Sunset Drive",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "constituency": "PP-110",
+        "registered_sims": [
+            "0305-8765432",
+            "0341-9876543",
+            "0320-7654321"
+        ]
+    },
+    {
+        "name": "Sadia Ali",
+        "CNIC": "31302-7890123-4",
+        "permanent_address": {
+            "street": "112 Sunset Avenue",
+            "city": "Islamabad",
+            "province": "Islamabad Capital Territory"
+        },
+        "temporary_address": {
+            "street": "78 Green Road",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "constituency": "NA-60",
+        "registered_sims": [
+            "0311-9876543",
+            "0346-8765432"
+        ]
+    },
+    {
+        "name": "Kamran Khan",
+        "CNIC": "42104-5432109-5",
+        "permanent_address": {
+            "street": "23 Blue Crescent",
+            "city": "Karachi",
+            "province": "Sindh"
+        },
+        "temporary_address": {
+            "street": "56 Ocean View",
+            "city": "Karachi",
+            "province": "Sindh"
+        },
+        "constituency": "NA-251",
+        "registered_sims": [
+            "0342-9876543",
+            "0303-8765432"
+        ]
+    },
+    {
+        "name": "Saima Aziz",
+        "CNIC": "35205-2345678-9",
+        "permanent_address": {
+            "street": "34 Main Street",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "temporary_address": {
+            "street": "11 Park Avenue",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "constituency": "NA-127",
+        "registered_sims": [
+            "0322-9876543",
+            "0347-8765432",
+            "0312-7654321"
+        ]
+    },
+    {
+        "name": "Sadia Ali",
+        "CNIC": "31302-7890123-4",
+        "permanent_address": {
+            "street": "112 Sunset Avenue",
+            "city": "Islamabad",
+            "province": "Islamabad Capital Territory"
+        },
+        "temporary_address": {
+            "street": "78 Green Road",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "constituency": "NA-60",
+        "registered_sims": [
+            "0311-9876543",
+            "0346-8765432"
+        ]
+    },
+    {
+        "name": "Kamran Khan",
+        "CNIC": "42104-5432109-5",
+        "permanent_address": {
+            "street": "23 Blue Crescent",
+            "city": "Karachi",
+            "province": "Sindh"
+        },
+        "temporary_address": {
+            "street": "56 Ocean View",
+            "city": "Karachi",
+            "province": "Sindh"
+        },
+        "constituency": "NA-251",
+        "registered_sims": [
+            "0342-9876543",
+            "0303-8765432"
+        ]
+    },
+    {
+        "name": "Saima Aziz",
+        "CNIC": "35205-2345678-9",
+        "permanent_address": {
+            "street": "34 Main Street",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "temporary_address": {
+            "street": "11 Park Avenue",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "constituency": "NA-127",
+        "registered_sims": [
+            "0322-9876543",
+            "0347-8765432",
+            "0312-7654321"
+        ]
+    },
+    {
+        "name": "Asad Malik",
+        "CNIC": "29104-6543210-7",
+        "permanent_address": {
+            "street": "87 Green Road",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "temporary_address": {
+            "street": "112 Blue Crescent",
+            "city": "Karachi",
+            "province": "Sindh"
+        },
+        "constituency": "NA-315",
+        "registered_sims": [
+            "0304-8765432",
+            "0344-9876543"
+        ]
+    },
+    {
+        "name": "Nadia Iqbal",
+        "CNIC": "41206-9876543-3",
+        "permanent_address": {
+            "street": "54 Sunset Avenue",
+            "city": "Islamabad",
+            "province": "Islamabad Capital Territory"
+        },
+        "temporary_address": {
+            "street": "25 Park Avenue",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "constituency": "NA-225",
+        "registered_sims": [
+            "0311-8765432",
+            "0341-9876543"
+        ]
+    },
+    {
+        "name": "Rizwan Shah",
+        "CNIC": "37505-1234567-6",
+        "permanent_address": {
+            "street": "37 Main Street",
+            "city": "Lahore",
+            "province": "Punjab"
+        },
+        "temporary_address": {
+            "street": "82 Ocean View",
+            "city": "Karachi",
+            "province": "Sindh"
+        },
+        "constituency": "NA-92",
+        "registered_sims": [
+            "0320-9876543",
+            "0342-8765432",
+            "0315-7654321"
+        ]
+    }
+]
