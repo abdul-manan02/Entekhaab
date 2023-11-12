@@ -1,5 +1,8 @@
-import mongoose from 'mongoose'
-
-const connectDB = (url) => { return mongoose.connect(url) }
-
-export default connectDB
+export default async function connectToMongoDB(client) {
+    try {
+      await client.connect();
+      //console.log('Connected to MongoDB Atlas');
+    } catch (error) {
+      console.error('Error connecting to MongoDB Atlas', error);
+    }
+}

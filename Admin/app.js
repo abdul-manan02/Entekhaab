@@ -14,7 +14,6 @@ app.use('/api/v1/admin/candidateApproval', candidateApproval)
 const port = process.env.PORT || 5000
 const start = async() =>{
     try {
-        await connectDB(process.env.ADMIN_URI)
         app.listen(port, console.log(`LISTENING ON PORT ${port}`))
     } catch (error) {
         console.log(error)
