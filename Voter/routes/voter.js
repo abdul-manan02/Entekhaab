@@ -5,10 +5,15 @@ import {
     getAllVoters, 
     createVoter, 
     getVoter, 
-    changeVoterData, 
+    changeSelectedAddress, 
+    changeSelectedSim, 
+    getElections,
 } from '../controllers/voter.js'
 
 router.route('/').post(createVoter).get(getAllVoters)
-router.route('/:cnic').get(getVoter).patch(changeVoterData)
+router.route('/:cnic').get(getVoter)
+router.route('/:cnic/changeSim').patch(changeSelectedSim)
+router.route('/:cnic/changeAddress').patch(changeSelectedAddress)
+router.router('/:cnic/elections').get()
 
 export default router

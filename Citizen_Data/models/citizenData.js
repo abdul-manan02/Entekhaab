@@ -1,71 +1,76 @@
 import mongoose from 'mongoose'
 
-const voterSchema = new mongoose.Schema({
-    name:{
+const citizenSchema = new mongoose.Schema({
+    cnic: {
         type: String,
-        required: [true, 'Voter must have a name']
+        unique: true,
+        required: [true, 'Citizen must have a cnic'],
     },
-    cnic:{
+    name: {
         type: String,
-        required: [true, 'Voter must have a cnic'],
-        unique: true
+        required: [true, 'Citizen must have a name']
     },
-    sims:{
-        type: [String],
-        required: [true, 'At least 1 sim should be provided']
+    dateOfBirth: {
+        type: Date,
+        required: [true, 'Citizen must have a D.O.B']
     },
-    selectedSim:{
+    gender: {
         type: String,
-        required: [true, 'A sim must be selected']
-    },
-    permanentAddress:{
-        house: Number,
-        street: Number,
-        area: {
-            type: String,
-            required: [true, 'Area must be provdided']
-        },
-        city: {
-            type: String,
-            required: [true, 'City must be provdided']
-        },
-        province: {
-            type: String,
-            required: [true, 'Province must be provdided'],
-            enum:{
-                values: ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad Capital Territory'],
-                message: '${VALUE} is invalid'
-            }
-        }
-    },
-    temporaryAddress:{
-        house: Number,
-        street: Number,
-        area: {
-            type: String,
-            required: [true, 'Area must be provdided']
-        },
-        city: {
-            type: String,
-            required: [true, 'City must be provdided']
-        },
-        province: {
-            type: String,
-            required: [true, 'Province must be provdided'],
-            enum:{
-                values: ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad Capital Territory'],
-                message: '${VALUE} is invalid'
-            }
-        }
-    },
-    selectedAddress:{
-        type: String,
-        enum:{
-            values: ['Permanent', 'Temporary'],
+        enum: {
+            values: ['Male', 'Female', 'Other'],
             message: '${VALUE} is invalid'
-        } 
-    }
+        }, 
+        required: [true, 'Citizen must have a gender']
+    },
+    maritalStatus: {
+        type: String,
+        enum: {
+           values: ['Single', 'Married', 'Divorced', 'Widowed'],
+           message: '${VALUE} is invalid'
+        }, 
+        required: [true, 'Citizen must have a marital status']
+    },
+    permanentAddress: {
+        house: Number,
+        street: Number,
+        area: {
+            type: String,
+            required: [true, 'Area must be provdided']
+        },
+        city: {
+            type: String,
+            required: [true, 'City must be provdided']
+        },
+        province: {
+            type: String,
+            required: [true, 'Province must be provdided'],
+            enum:{
+                values: ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad Capital Territory'],
+                message: '${VALUE} is invalid'
+            }
+        }
+    },
+    temporaryAddress: {
+        house: Number,
+        street: Number,
+        area: {
+            type: String,
+            required: [true, 'Area must be provdided']
+        },
+        city: {
+            type: String,
+            required: [true, 'City must be provdided']
+        },
+        province: {
+            type: String,
+            required: [true, 'Province must be provdided'],
+            enum:{
+                values: ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad Capital Territory'],
+                message: '${VALUE} is invalid'
+            }
+        }
+    },
 })
 
-const Voter = mongoose.model('Voter', voterSchema, 'Voter')
-export default Voter
+const citizenData = mongoose.model('Citizen Model', citizenSchema, 'Citizen_Data')
+export default citizenData
