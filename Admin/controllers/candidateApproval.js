@@ -1,6 +1,4 @@
 import CandidateApproval from '../models/candidateApproval.js'
-import { MongoClient } from 'mongodb'
-import connectDB from '../db/connect.js'
 import axios from 'axios'
 
 const getAllRequests = async(req,res) =>{
