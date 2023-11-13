@@ -5,7 +5,7 @@ import {
     getAllRequests, 
     createRequest, 
     updateRequest
-} from '../controllers/candidateApproval.js'
+} from '../controllers/partyApproval.js'
 
 router.route('/').post(createRequest).get(getAllRequests).patch(updateRequest)
 

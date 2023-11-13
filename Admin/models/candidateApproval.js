@@ -15,7 +15,6 @@ const candidate_approval = new mongoose.Schema({
     // upon account creation, this data will be fetched from the citizenData DB, collection "Citizen_Data"
     citizenData: {
         type: Object,
-        unique: true,
         immutable: true,
         default: null
     },

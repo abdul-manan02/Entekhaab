@@ -11,7 +11,7 @@ app.use(express.json());
 app.use('/api/v1/citizenData', citizenRouter)
 
 
-const port = process.env.PORT || 5000
+const port = process.env.PORT || 5001
 const start = async() =>{
     try {
         await connectDB(process.env.CITIZEN_URI)
