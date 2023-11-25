@@ -70,6 +70,10 @@ const citizenSchema = new mongoose.Schema({
             }
         }
     },
+    sims:{
+        type: [String],
+        required: [true, 'Citizen must have at least one sim']
+    }
 })
 
 const citizenData = mongoose.model('Citizen Model', citizenSchema, 'Citizen_Data')

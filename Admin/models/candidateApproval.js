@@ -1,9 +1,15 @@
 import mongoose from 'mongoose'
 
 const candidate_approval = new mongoose.Schema({
+    citizenData: {
+        type: Object,
+        immutable: true,
+        default: null
+    },
     cnic: {
         type: String,
         immutable: true,
+        unique: true,
         required: [true, "CNIC must be provided"]
     },
     // proof should be a pdf containing all the proofs //
@@ -13,11 +19,7 @@ const candidate_approval = new mongoose.Schema({
         required: [true, "All relevant forms and documents should be provided in the pdf"]
     },
     // upon account creation, this data will be fetched from the citizenData DB, collection "Citizen_Data"
-    citizenData: {
-        type: Object,
-        immutable: true,
-        default: null
-    },
+    
     // this will automatically be submitted along with the request
     submitTime: {
         type: Date,

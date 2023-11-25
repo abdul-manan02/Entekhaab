@@ -2,12 +2,13 @@ import express from 'express'
 const router = express.Router()
 
 import {
-    getAllCitizens, 
-    createCitizen, 
-    getCitizen
+    createCitizen,
+    getAllCitizens,
+    getCitizen,
+    updateCitizen
 } from '../controllers/citizenData.js'
 
 router.route('/').post(createCitizen).get(getAllCitizens)
-router.route('/:cnic').get(getCitizen)
+router.route('/:cnic').get(getCitizen).patch(updateCitizen)
 
 export default router
