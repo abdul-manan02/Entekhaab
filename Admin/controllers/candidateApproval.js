@@ -10,23 +10,14 @@ const getAllRequests = async(req,res) =>{
     }
 }
 
-
 const createRequest = async(req,res) =>{
     try {
-        const {cnic} = req.body
-        const citizenData = await axios.get(`http://localhost:5001/api/v1/citizenData/${cnic}`)
-        const cleanedData = citizenData.data.citizen
-        delete cleanedData._id;
-        delete cleanedData.__v;
-        const modifiedBody = {
-            cnic,
-            proof: req.body.proof,
-            citizenData: cleanedData
-        }
-        const newReqest = await CandidateApproval.create(modifiedBody)
-        res.json(newReqest)
+        const {accountId, proof} = req.body
+        const newBody = {accountId, proof}
+        const newReqest = await CandidateApproval.create(newBody)
+        res.json({newReqest})
     } catch (error) {
-        res.json({msg: error})
+        res.json({msg: error.message})
     }
     
 }
@@ -34,9 +25,13 @@ const createRequest = async(req,res) =>{
 
 const updateRequest = async(req,res) =>{
     try {
-        const { cnic, status } = req.body
-        const request = await CandidateApproval.findOneAndUpdate({cnic}, {status}, {new: true, runValidators: true});
-        res.status(200).json(request)
+        const {_id} = req.params
+        const {status} = req.body
+        const updatedRequest = await CandidateApproval.findByIdAndUpdate(_id, { status }, { new: true, runValidators: true });
+        if(status == "Accepted"){
+            const updated
+        }
+        res.status(200).json(updatedRequest)
     } catch (error) {
         res.status(404).json({msg: error})
     }

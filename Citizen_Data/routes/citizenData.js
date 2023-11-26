@@ -4,11 +4,14 @@ const router = express.Router()
 import {
     createCitizen,
     getAllCitizens,
-    getCitizen,
-    updateCitizen
+    getCitizenByCnic,
+    updateCitizenByCnic,
+    getCitizenById,
+    updateCitizenById
 } from '../controllers/citizenData.js'
 
 router.route('/').post(createCitizen).get(getAllCitizens)
-router.route('/:cnic').get(getCitizen).patch(updateCitizen)
+router.route('/cnic/:cnic').get(getCitizenByCnic).patch(updateCitizenByCnic)
+router.route('/id/:id').get(getCitizenById).patch(updateCitizenById)
 
 export default router

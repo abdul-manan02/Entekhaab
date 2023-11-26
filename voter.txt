@@ -1,0 +1,24 @@
+    enter cnic and name
+    
+    run the getCitizen from Citizen_Data microservice
+    
+    match the existing name and cnic with the ones receive by user
+    
+    if not match, return error
+    
+    if matched, show list of sims and addresses fetched from getCitizen
+    
+    user selects sim and addresses
+    
+    send and verify otp using controllers defined in Voter_Candidate
+    
+    user enters password
+    
+    now, store the 
+        citizenDataId
+        password
+        selectedSim
+        votingAddress
+    in an object
+
+    Send post request to Voter_Candidate model and store this entry there

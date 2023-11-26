@@ -3,15 +3,13 @@ const router = express.Router()
 
 import {
     getAllAccounts,
-    getCitizenData,
     createAccount,
     getAccount,
     changeSelectedAddress,
     changeSelectedSim 
 } from '../controllers/voter.js'
 
-router.route('/sign-up/getData').post(getCitizenData)
-router.route('/sign-up/createAccount').post(createAccount)
+router.route('/sign-up').post(createAccount)
 
 router.route('/').get(getAllAccounts)
 router.route('/:id').get(getAccount)

@@ -11,53 +11,23 @@ const getAllAccounts = async(req,res) =>{
     }
 }
 
-// ACCOUNT CREATION
-// one form, user enters name, cnic
-// query from db and return sims and addresses
-// use selects sim and votingAddress
-// otp sent
-// once otp verified, allow user to set password
-const getCitizenData = async(req,res)=>{
-    try {
-        const citizenData = await axios.get(`http://localhost:5001/api/v1/citizenData/${req.body.cnic}`)
-        const cleanedData = citizenData.data
-
-        if(req.body.cnic !== cleanedData.cnic || req.body.name !== cleanedData.name)
-            res.status(400).json({msg: "CNIC and Name do not match"})
-        else
-            res.status(201).json({...cleanedData})
-    } catch (error) {
-        res.status(400).json({msg: error})
-    }
-}
-
-const sendOTP = async(req,res) =>{
-    try {
-        
-    } catch (error) {
-        
-    }
-} 
-
-const verifyOTP = async(req,res) =>{
-    try {
-        
-    } catch (error) {
-        
-    }
-}
-
+// User initiates getCitizenDataByCnic.
+// The provided CNIC and name are compared with the citizen data.
+// If there's a match, the user is offered a SIM selection option.
+// Upon selecting a SIM, an OTP (One-Time Password) is sent.
+// After OTP verification, the user inputs a password.
+// The user is presented with two addresses and selects one.
+// The frontend sends the following attributes in req.body.
+// A voter record is created.
 const createAccount = async(req,res)=>{
     try {
-        const {cnic, name, password, citizenData, selectedSim, votingAddress} = req.body
+        const {password, citizenDataId, selectedSim, votingAddress} = req.body
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const newAccount = {
-            cnic,
-            name,
             password: hashedPassword,
-            citizenData: citizenData._id,
+            citizenDataId,
             selectedSim,
             votingAddress
         }
@@ -68,17 +38,20 @@ const createAccount = async(req,res)=>{
     }
 }
 
-const getAccount = async(req,res) =>{
+const getAccount = async (req, res) => {
     try {
         const account = await Voter_Candidate.findById(req.params.id)
-        if(account)
-            res.status(201).json({account})
-        else
-            res.status(404).json({msg: "Account not found"})
+  
+      if (account) {
+        res.status(201).json({ account });
+      } else {
+        res.status(404).json({ msg: 'Account not found' });
+      }
     } catch (error) {
-        res.status(404).json({msg: error})
+      res.status(500).json({ msg: error.message });
     }
-}
+  };
+  
 
 const changeSelectedAddress = async(req,res) =>{
     try {
@@ -112,7 +85,6 @@ const changeSelectedSim = async(req,res) =>{
 
 export {
     getAllAccounts,
-    getCitizenData,
     createAccount,
     getAccount,
     changeSelectedAddress,

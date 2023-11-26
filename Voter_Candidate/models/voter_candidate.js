@@ -1,22 +1,13 @@
 import mongoose from 'mongoose'
 
 const voterCandidateSchema = new mongoose.Schema({
-    cnic:{
-        type: String,
-        required: [true, 'Voter must have a cnic'],
-        unique: true
-    },
-    name:{
-        type: String,
-        required: [true, 'Voter must have a name']
-    },
     password:{
         type: String,
         required: [true, 'Voter must have a password']
     },
-    citizenData:{
+    citizenDataId:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Citizen'
+        required: [true, 'Voter must have a citizen data']
     },
     selectedSim:{
         type: String,
@@ -27,29 +18,23 @@ const voterCandidateSchema = new mongoose.Schema({
         enum:{
             values: ['Permanent', 'Temporary'],
             message: '${VALUE} is invalid'
-        } 
+        },
+        required: [true, 'Voting address must be set'] 
     },
-    
-    votingHistory:{
-        elections:[{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Election'
-        }]
+    voterHistory:{
+        type: [mongoose.Schema.Types.ObjectId],
     },
-    /*
+
     isCandidate:{
         type: Boolean,
         default: false
     },
     party:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Party'
     },
-    pastElecions:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Election'
-    },
-    */
+    candidateHistory:{
+        type: [mongoose.Schema.Types.ObjectId],
+    }
 })
 
 // har banda party main hoga

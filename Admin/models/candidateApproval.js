@@ -1,16 +1,10 @@
 import mongoose from 'mongoose'
 
 const candidate_approval = new mongoose.Schema({
-    citizenData: {
-        type: Object,
-        immutable: true,
-        default: null
-    },
-    cnic: {
-        type: String,
-        immutable: true,
-        unique: true,
-        required: [true, "CNIC must be provided"]
+    // voter_candidate db
+    accountId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: [true, "Citizen Data must be provided"]
     },
     // proof should be a pdf containing all the proofs //
     proof: {
@@ -23,7 +17,6 @@ const candidate_approval = new mongoose.Schema({
     // this will automatically be submitted along with the request
     submitTime: {
         type: Date,
-        immutable: true,
         default: Date.now
     },
     status:{

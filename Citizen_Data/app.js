@@ -11,10 +11,10 @@ app.use(express.json());
 app.use('/api/v1/citizenData', citizenRouter)
 
 
-const port = process.env.PORT || 5001
+const port = process.env.PORT || 1000
 const start = async() =>{
     try {
-        await connectDB(process.env.CITIZEN_URI)
+        await connectDB(process.env.ENTEKHAAB_URI)
         app.listen(port, console.log(`LISTENING ON PORT ${port}`))
     } catch (error) {
         console.log(error)

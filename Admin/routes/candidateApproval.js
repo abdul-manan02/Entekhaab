@@ -7,6 +7,7 @@ import {
     updateRequest
 } from '../controllers/candidateApproval.js'
 
-router.route('/').post(createRequest).get(getAllRequests).patch(updateRequest)
+router.route('/').post(createRequest).get(getAllRequests)
+router.route('/:id').patch(updateRequest)
 
 export default router
