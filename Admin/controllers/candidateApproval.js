@@ -29,7 +29,7 @@ const updateRequest = async(req,res) =>{
         const {status} = req.body
         const updatedRequest = await CandidateApproval.findByIdAndUpdate(_id, { status }, { new: true, runValidators: true });
         if(status == "Accepted"){
-            const updated
+            
         }
         res.status(200).json(updatedRequest)
     } catch (error) {
