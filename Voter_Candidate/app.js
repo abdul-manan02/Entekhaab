@@ -16,7 +16,7 @@ const port = process.env.PORT || 1001
 const start = async() =>{``
     try {
         await connectDB(process.env.ENTEKHAAB_URI)
-        app.listen(port, console.log(`LISTENING ON PORT ${port}`))
+        app.listen(port, console.log(`ACCOUNT : ${port}`))
     } catch (error) {
         console.log(error)
     }

@@ -22,20 +22,38 @@ const createRequest = async(req,res) =>{
     
 }
 
-
-const updateRequest = async(req,res) =>{
+// admin fetches all requests
+// if status="Rejected", just update request
+// if status="Accepted", update Request and call updateCandidate of Voter_Candidate microservice
+//      using the accountId from the selected Request
+const updateRequest = async (req, res) => {
     try {
-        const {_id} = req.params
-        const {status} = req.body
-        const updatedRequest = await CandidateApproval.findByIdAndUpdate(_id, { status }, { new: true, runValidators: true });
-        if(status == "Accepted"){
-            
+        const { id } = req.params;
+        const { status } = req.body;
+        if (status === "Accepted" || status === "Rejected") {
+            const updatedRequest = await CandidateApproval.findByIdAndUpdate({_id:id}, { status }, { new: true, runValidators: true });
+
+            if(status === "Rejected")
+                return res.json({ msg: "Request Rejected" });
+
+            if (!updatedRequest) {
+                return res.status(404).json({ msg: "Request not found" });
+            }
+
+            const { accountId } = req.body;
+            const endPoint = `http://localhost:1001/api/v1/candidate/${accountId}`;
+            const candidateResponse = await axios.patch(endPoint, { isCandidate: true });
+            //const partyResponse = await axios.patch(endPoint, { isCandidate: true });
+            return res.json({ response: candidateResponse.data });
+        } else {
+            return res.status(400).json({ msg: "Status can only be Accepted or Rejected" });
         }
-        res.status(200).json(updatedRequest)
     } catch (error) {
-        res.status(404).json({msg: error})
+        // Ensure to handle specific errors appropriately
+        res.status(500).json({ msg: error.message });
     }
-}
+};
+
 
 export{
     getAllRequests,

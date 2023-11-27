@@ -5,15 +5,24 @@ const partySchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    members:{
-        name:{
-            type: String,
-            required: [true, 'Member must have a name']
-        },
-        cnic:{
-            type: String,
-            required: [true, 'Member must have a cnic'],
-        }
+    leaderAccountId:{
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
+    },
+    password:{
+        type: String,
+        required: true
+    },
+    selectedSim:{
+        type: String,
+        required: true
+    },
+    memberIDs:{
+        type: [mongoose.Schema.Types.ObjectId],
+    },
+    approved:{
+        type: Boolean,
+        default: false
     }
 })
 
