@@ -19,7 +19,6 @@ const createRequest = async(req,res) =>{
     } catch (error) {
         res.json({msg: error.message})
     }
-    
 }
 
 // admin fetches all requests

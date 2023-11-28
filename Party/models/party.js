@@ -5,8 +5,8 @@ const partySchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    leaderAccountId:{
-        type: mongoose.Schema.Types.ObjectId,
+    leaderAccountCNIC:{
+        type: String,
         required: true
     },
     password:{
