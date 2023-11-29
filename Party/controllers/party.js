@@ -71,36 +71,40 @@ const updateParty = async (req, res) => {
     try {
         const { id } = req.params;
         const { leaderAccountId, memberID, action } = req.body;
-
+        
         const party = await Party.findById(id);
         if (!party) {
             return res.status(404).json({ msg: 'Party not found' });
         }
-
+        
         let update = {};
         if (leaderAccountId) {
             update.leaderAccountId = leaderAccountId;
         }
-
+        let response;
         if (memberID && action) {
             if (action === 'Add') {
                 if (!party.memberIDs.includes(memberID)) {
                     update.$addToSet = { memberIDs: memberID };
+                    const endpoint = `http://localhost:1001/api/v1/candidate/updateParty/${memberID}`;
+                    response = await axios.patch(endpoint, {partyId: id});
                 } else {
                     return res.status(400).json({ msg: 'Member already exists' });
                 }
             } else if (action === 'Remove') {
                 if (party.memberIDs.includes(memberID)) {
                     update.$pull = { memberIDs: memberID };
+                    const endpoint = `http://localhost:1001/api/v1/candidate/updateParty/${memberID}`;
+                    response = await axios.patch(endpoint, {partyId: null});
                 } else {
                     return res.status(400).json({ msg: 'Member does not exist' });
                 }
             }
         }
 
-        const updatedParty = await Party.findByIdAndUpdate(id, update, { new: true });
+        const updatedParty = await Party.findByIdAndUpdate(id, update, { runValidators:true, new: true });
 
-        res.status(200).json({ msg: 'Party updated successfully', party: updatedParty });
+        res.status(200).json({ msg: 'Party updated successfully', party: updatedParty, account: response.data });
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }

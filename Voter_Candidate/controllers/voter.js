@@ -21,15 +21,18 @@ const getAllAccounts = async(req,res) =>{
 // A voter record is created.
 const createAccount = async(req,res)=>{
     try {
-        const {password, citizenDataId, selectedSim, votingAddress} = req.body
+        const {cnic, password, citizenDataId, selectedSim, votingAddress} = req.body
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const newAccount = {
+            cnic,
             password: hashedPassword,
             citizenDataId,
             selectedSim,
-            votingAddress
+            votingAddress,
+            // this is the default independent party
+            // party: "656742d3e1650a1398e8b7b9"
         }
         const newUser = await Voter_Candidate.create(newAccount)
         res.status(201).json({newUser})
@@ -52,7 +55,7 @@ const getAccount = async (req, res) => {
     }
   };
   
-
+  
 const changeSelectedAddress = async(req,res) =>{
     try {
         const account = await Voter_Candidate.findByIdAndUpdate(

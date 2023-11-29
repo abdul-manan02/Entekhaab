@@ -1,13 +1,19 @@
 import mongoose from 'mongoose'
 
 const voterCandidateSchema = new mongoose.Schema({
+    cnic:{
+        type: String,
+        required: [true, 'Voter must have a cnic'],
+        unique: true
+    },
     password:{
         type: String,
         required: [true, 'Voter must have a password']
     },
     citizenDataId:{
         type: mongoose.Schema.Types.ObjectId,
-        required: [true, 'Voter must have a citizen data']
+        required: [true, 'Voter must have a citizen data'],
+        unique: true
     },
     selectedSim:{
         type: String,
@@ -31,6 +37,7 @@ const voterCandidateSchema = new mongoose.Schema({
     },
     party:{
         type: mongoose.Schema.Types.ObjectId,
+        default: null
     },
     candidateHistory:{
         type: [mongoose.Schema.Types.ObjectId],

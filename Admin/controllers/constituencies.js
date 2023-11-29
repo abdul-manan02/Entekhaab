@@ -6,7 +6,7 @@ const getAllConstituencies = async(req,res)=>{
         const constituencies = await Constituencies.find()
         if(constituencies.length == 0)
             return res.send("EMPTY")
-        res.send(constituencies)
+        res.json({constituencies})
 
     } catch (error) {
         res.status(404).json(error)

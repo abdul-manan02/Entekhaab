@@ -1,6 +1,11 @@
 import mongoose from 'mongoose'
 
 const member_approval = new mongoose.Schema({
+    partyId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Party',
+        required: true
+    },
     memberId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "Citizen Data must be provided"]
