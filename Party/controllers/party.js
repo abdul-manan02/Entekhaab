@@ -37,10 +37,10 @@ const createParty = async (req, res) => {
     }
 };
 
-const getPartyByName = async (req, res) => {
+const getParty = async (req, res) => {
     try {
-        const { name } = req.params;
-        const party = await Party.findOne({ name });
+        const { id } = req.params;
+        const party = await Party.findOne({ _id: id });
 
         if (!party) {
             res.status(404).json({ msg: 'Party not found' });
@@ -72,6 +72,11 @@ const updateParty = async (req, res) => {
         const { id } = req.params;
         const { leaderAccountId, memberID, action } = req.body;
 
+        const party = await Party.findById(id);
+        if (!party) {
+            return res.status(404).json({ msg: 'Party not found' });
+        }
+
         let update = {};
         if (leaderAccountId) {
             update.leaderAccountId = leaderAccountId;
@@ -79,19 +84,23 @@ const updateParty = async (req, res) => {
 
         if (memberID && action) {
             if (action === 'Add') {
-                update.$addToSet = { memberIDs: memberID };
+                if (!party.memberIDs.includes(memberID)) {
+                    update.$addToSet = { memberIDs: memberID };
+                } else {
+                    return res.status(400).json({ msg: 'Member already exists' });
+                }
             } else if (action === 'Remove') {
-                update.$pull = { memberIDs: memberID };
+                if (party.memberIDs.includes(memberID)) {
+                    update.$pull = { memberIDs: memberID };
+                } else {
+                    return res.status(400).json({ msg: 'Member does not exist' });
+                }
             }
         }
 
-        const updatedParty = await Party.findOneAndUpdate({ _id: id }, update, { new: true });
+        const updatedParty = await Party.findByIdAndUpdate(id, update, { new: true });
 
-        if (!updatedParty) {
-            res.status(404).json({ msg: 'Party not found' });
-        } else {
-            res.status(200).json({ msg: 'Party updated successfully', party: updatedParty });
-        }
+        res.status(200).json({ msg: 'Party updated successfully', party: updatedParty });
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }
@@ -99,6 +108,7 @@ const updateParty = async (req, res) => {
 
 export{
     getAllParties,
+    getParty,
     createParty,
     updateApproval,
     updateParty
