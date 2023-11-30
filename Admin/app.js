@@ -1,5 +1,5 @@
 import 'dotenv/config'
-
+import cors from 'cors'
 import express from 'express'
 const app = express()
 
@@ -10,10 +10,10 @@ import constituencies from './routes/constituencies.js'
 
 // middleware
 app.use(express.json());
+app.use(cors());
 app.use('/api/v1/admin/candidateApproval', candidateApproval)
 app.use('/api/v1/admin/partyApproval', partyApproval)
 app.use('/api/v1/admin/constituency', constituencies)
-
 
 const port = process.env.PORT || 1002
 const start = async() =>{

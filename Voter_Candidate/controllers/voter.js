@@ -1,6 +1,7 @@
 import Voter_Candidate from '../models/voter_candidate.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
+import axios from 'axios';
 
 const getAllAccounts = async (req, res) => {
     try {
@@ -52,9 +53,9 @@ const login = async (req, res) => {
         if (!isMatch)
             return res.status(400).json({ msg: "Invalid credentials" })
 
-        const token = jwt.sign({ id: account._id }, process.env.JWT_SECRET, { expiresIn: '20m' })
+        const token = jwt.sign({ userId: account._id }, process.env.JWT_SECRET, { expiresIn: '20m' })
 
-        res.status(201).json({ account })
+        res.status(201).json({ account, token })
     } catch (error) {
         res.status(500).json({ msg: error })
     }

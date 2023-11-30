@@ -1,5 +1,5 @@
 import 'dotenv/config'
-
+import cors from 'cors'
 import express from 'express'
 const app = express()
 
@@ -8,12 +8,13 @@ import votersRouter from './routes/voter.js'
 import candidateRouter from './routes/candidate.js'
 // middleware
 app.use(express.json());
+app.use(cors());
 app.use('/api/v1/voter', votersRouter)
 app.use('/api/v1/candidate', candidateRouter)
 
 
 const port = process.env.PORT || 1001
-const start = async() =>{``
+const start = async() =>{
     try {
         await connectDB(process.env.ENTEKHAAB_URI)
         app.listen(port, console.log(`ACCOUNT : ${port}`))
