@@ -14,7 +14,9 @@ import {
 router.route('/sign-up').post(createAccount)
 
 router.route('/').get(getAllAccounts)
-router.route('/:id').get(authenticateToken, getAccount)
+
+//router.route('/:id').get(authenticateToken, getAccount)
+router.route('/:id').get(getAccount)
 
 router.route('/login').post(login)
 

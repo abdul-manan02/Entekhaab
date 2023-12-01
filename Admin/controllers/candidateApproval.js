@@ -41,14 +41,16 @@ const updateRequest = async (req, res) => {
 
             const { accountId } = req.body;
             const endPoint = `http://localhost:1001/api/v1/candidate/${accountId}`;
+            // this being called in the above endpoint in a different microservice from this one, how to control auth
+            router.route('/:id').patch(authenticateToken, approveCandidate)
+
             const candidateResponse = await axios.patch(endPoint, { isCandidate: true });
-            //const partyResponse = await axios.patch(endPoint, { isCandidate: true });
+            
             return res.json({ response: candidateResponse.data });
         } else {
             return res.status(400).json({ msg: "Status can only be Accepted or Rejected" });
         }
     } catch (error) {
-        // Ensure to handle specific errors appropriately
         res.status(500).json({ msg: error.message });
     }
 };

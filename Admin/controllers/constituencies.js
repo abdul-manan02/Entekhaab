@@ -17,7 +17,7 @@ const createConstituency = async(req,res)=>{
     try {
         const {name, position} = req.body
         const {province, district, city, area} = position
-        if (!/^(NA|PP)-\d{1,3}$/.test(name))
+        if (!/^(NA|PP|PS|PK|PB)-\d{1,3}$/.test(name))
             return res.send('INCORRECT NAME')
         const newConstituency = await Constituencies.create(req.body)
         res.json(newConstituency)
