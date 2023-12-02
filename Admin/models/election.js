@@ -15,6 +15,15 @@ const electionSchema = new mongoose.Schema({
         default: Date.now
     },
 
+    isStarted: {
+        type: Boolean,
+        default: false
+    },
+    isFinished: {
+        type: Boolean,
+        default: false
+    },
+
     constituencies: [{
         type: mongoose.Schema.Types.ObjectId,
         required: [true, 'Constituency must be provided']
@@ -49,6 +58,7 @@ const electionSchema = new mongoose.Schema({
             default: 0
         }
     }],
+
     // search through candidates arrow by using constituencyId, find greatest votesReceived value
     // then, store info here
     winners: [{
@@ -126,10 +136,8 @@ const electionSchema = new mongoose.Schema({
                 }
             },
         },
-    },
-
-    voterTurnoutPercentage: Number,
-    postElectionReactions: [String]
+    }
 });
 
-const Election = mongoose.model('Election', electionSchema);
+const Election = mongoose.model('Election', electionSchema, 'Election');
+export default Election;
