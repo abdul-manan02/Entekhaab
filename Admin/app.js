@@ -1,5 +1,4 @@
 import 'dotenv/config'
-import cors from 'cors'
 import express from 'express'
 const app = express()
 
@@ -11,7 +10,6 @@ import login from './routes/login.js'
 
 // middleware
 app.use(express.json());
-app.use(cors());
 app.use('/api/v1/admin/candidateApproval', candidateApproval)
 app.use('/api/v1/admin/partyApproval', partyApproval)
 app.use('/api/v1/admin/constituency', constituencies)

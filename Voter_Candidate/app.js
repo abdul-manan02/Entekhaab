@@ -1,5 +1,4 @@
 import 'dotenv/config'
-import cors from 'cors'
 import express from 'express'
 const app = express()
 
@@ -8,7 +7,6 @@ import votersRouter from './routes/voter.js'
 import candidateRouter from './routes/candidate.js'
 // middleware
 app.use(express.json());
-app.use(cors());
 app.use('/api/v1/voter', votersRouter)
 app.use('/api/v1/candidate', candidateRouter)
 
