@@ -8,6 +8,7 @@ import partyApproval from './routes/partyApproval.js'
 import constituencies from './routes/constituencies.js'
 import login from './routes/login.js'
 import election from './routes/election.js'
+import candidateParticipation from './routes/candidateParticipation.js'
 
 // middleware
 app.use(express.json());
@@ -16,6 +17,7 @@ app.use('/api/v1/admin/partyApproval', partyApproval)
 app.use('/api/v1/admin/constituency', constituencies)
 app.use('/api/v1/admin/login', login)
 app.use('/api/v1/admin/election', election)
+app.use('/api/v1/admin/candidateParticipation', candidateParticipation)
 
 const port = process.env.PORT || 1002
 const start = async() =>{

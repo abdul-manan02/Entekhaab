@@ -99,6 +99,24 @@ const startElection = async (req, res) => {
     }
 }
 
+const addCandidate = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { candidateId, partyId, constituencyId } = req.body;
+        const election = await Election.findById(id);
+        
+        if (election.isStarted) 
+            return res.status(400).json({ message: 'Election has been started' });
+
+        election.candidates.push({ candidateId, partyId, constituencyId, votesReceived:0 });
+        await election.save();
+
+        res.status(201).json({ message: 'Candidate added successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred', error: error.message });
+    }
+}
+
 const finishElection = async (req, res) => {
     try {
         const { id } = req.params;
@@ -121,5 +139,6 @@ export{
     getAllElections, 
     getElection, 
     startElection,
+    addCandidate,
     finishElection
 }
