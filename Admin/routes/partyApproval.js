@@ -1,3 +1,4 @@
+import authMiddleware from '../middleware/authMiddleware.js'
 import express from 'express'
 const router = express.Router()
 
@@ -8,7 +9,9 @@ import {
     updateRequest
 } from '../controllers/partyApproval.js'
 
-router.route('/').post(createRequest).get(getAllRequests)
-router.route('/:id').patch(updateRequest).get(getParty)
+router.route('/')
+    .post(authMiddleware, createRequest).get(authMiddleware, getAllRequests)
+router.route('/id/:id')
+    .patch(authMiddleware, updateRequest).get(authMiddleware, getParty)
 
 export default router

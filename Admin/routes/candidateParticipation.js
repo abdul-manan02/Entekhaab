@@ -1,3 +1,4 @@
+import authMiddleware from '../middleware/authMiddleware.js'
 import express from 'express';
 const router = express.Router();
 
@@ -8,7 +9,9 @@ import{
     updateStatus
 } from '../controllers/candidateParticipation.js'
 
-router.route('/').post(createRequest).get(getAllRequests)
-router.route('/:id').get(getRequest).patch(updateStatus)
+router.route('/')
+    .post(authMiddleware, createRequest).get(authMiddleware, getAllRequests)
+router.route('/id/:id')
+    .get(authMiddleware, getRequest).patch(authMiddleware, updateStatus)
 
 export default router

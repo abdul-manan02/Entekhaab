@@ -10,14 +10,48 @@ const getAllRequests = async(req,res) =>{
     }
 }
 
-const createRequest = async(req,res) =>{
+const createRequest = async(req,res) => {
     try {
-        const {accountId, proof} = req.body
-        const newBody = {accountId, proof}
-        const newReqest = await CandidateApproval.create(newBody)
-        res.json({newReqest})
+        const { accountId, proof } = req.body;
+        
+        const newCandidateApproval = await CandidateApproval.create({
+            accountId,
+            proof
+        });
+
+        res.status(201).json({ newCandidateApproval });
     } catch (error) {
-        res.json({msg: error.message})
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const getRequest = async(req,res) =>{
+    try {
+        const { id } = req.params; // Assuming you're passing the document ID in the URL parameter
+        const {token} = req.body
+        // Find the candidate approval document by ID
+        const candidateApproval = await CandidateApproval.findById(id);
+
+        if(!candidateApproval) {
+            return res.status(404).json({ msg: "Request not found" });
+        }
+        
+        const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${candidateApproval.accountId}`;
+        const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const response = voterCandidateResponse.data;
+
+        const result = {
+            ...candidateApproval.toObject(),
+            voterCandidate: voterCandidateResponse.data
+        };
+
+        res.status(200).json({ result });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 }
 
@@ -28,7 +62,7 @@ const createRequest = async(req,res) =>{
 const updateRequest = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, token } = req.body;
         if (status === "Accepted" || status === "Rejected") {
             const updatedRequest = await CandidateApproval.findByIdAndUpdate({_id:id}, { status }, { new: true, runValidators: true });
 
@@ -41,10 +75,11 @@ const updateRequest = async (req, res) => {
 
             const { accountId } = req.body;
             const endPoint = `http://localhost:1001/api/v1/candidate/${accountId}`;
-            // this being called in the above endpoint in a different microservice from this one, how to control auth
-            //router.route('/:id').patch(authenticateToken, approveCandidate)
-
-            const candidateResponse = await axios.patch(endPoint, { isCandidate: true });
+            const candidateResponse = await axios.patch(endPoint, { isCandidate: true },{
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
             
             return res.json({ response: candidateResponse.data });
         } else {
@@ -58,6 +93,7 @@ const updateRequest = async (req, res) => {
 
 export{
     getAllRequests,
+    getRequest,
     createRequest,
     updateRequest
 }
