@@ -40,8 +40,28 @@ const getApproval = async (req, res) => {
 
 const getPendingApprovals = async (req, res) => {
     try {
-        const memberApproval = await MemberApproval.find({status: "Pending"});
-        res.status(200).json(memberApproval);
+        const memberApprovals = await MemberApproval.find({status: "Pending"});
+        const memberApprovalsData = await Promise.all(memberApprovals.map(async (approval) => {
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/${approval.memberId}`;
+            const voterCandidateResponse = await axios.get(voterCandidateEndpoint);
+            const cnic = voterCandidateResponse.data.account.cnic;
+            const citizenDataEndpoint = `http://localhost:1000/api/v1/citizenData/cnic/${cnic}`;
+            const citizenDataResponse = await axios.get(citizenDataEndpoint);
+            const name = citizenDataResponse.data.name;
+            const gender = citizenDataResponse.data.gender;
+            const dateOfBirth = citizenDataResponse.data.dateOfBirth;
+            return {
+                ...approval._doc,
+                memberData: {
+                    memberId: approval.memberId,
+                    cnic,
+                    name,
+                    gender,
+                    dateOfBirth
+                }
+            };
+        }));
+        res.status(200).json(memberApprovalsData);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
