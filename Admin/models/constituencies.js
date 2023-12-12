@@ -31,22 +31,3 @@ const constituenciesModel = new mongoose.Schema({
 
 const constituencies = mongoose.model('Constituencies', constituenciesModel, 'Constituencies')
 export default constituencies
-
-
-/*
-id:{
-        type: String,
-        required: [true, "Election Id must be provided"]
-    },
-    type:{
-        type: String,
-        enum:{
-            values:['General Elections', 'By Elections'],
-            message: '${VALUE} must be provided'
-        },
-        required: [true, "Election must have a type"]
-    },
-    constituencies:{
-        
-    }
-*/

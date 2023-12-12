@@ -82,6 +82,36 @@ const getAllElections = async (req, res) => {
     }
 }
 
+const getCreatedElections = async (req, res) => {
+    try {
+        const elections = await Election.find({ isStarted: false, isFinished: false });
+        res.json(elections);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
+
+const getStartedElections = async (req, res) => {
+    try {
+        const elections = await Election.find({ isStarted: true, isFinished: false });
+        res.json(elections);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
+
+const getFinishedElections = async (req, res) => {
+    try {
+        const elections = await Election.find({ isStarted: true, isFinished: true });
+        res.json(elections);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
+
 const startElection = async (req, res) => {
     try {
         const { id } = req.params;
@@ -138,6 +168,9 @@ export{
     createElection,
     getAllElections, 
     getElection, 
+    getCreatedElections,
+    getStartedElections,
+    getFinishedElections,
     startElection,
     addCandidate,
     finishElection

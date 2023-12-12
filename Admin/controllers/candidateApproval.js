@@ -42,7 +42,7 @@ const updateRequest = async (req, res) => {
             const { accountId } = req.body;
             const endPoint = `http://localhost:1001/api/v1/candidate/${accountId}`;
             // this being called in the above endpoint in a different microservice from this one, how to control auth
-            router.route('/:id').patch(authenticateToken, approveCandidate)
+            //router.route('/:id').patch(authenticateToken, approveCandidate)
 
             const candidateResponse = await axios.patch(endPoint, { isCandidate: true });
             
