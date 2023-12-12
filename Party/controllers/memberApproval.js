@@ -37,6 +37,17 @@ const getApproval = async (req, res) => {
     }
 }
 
+
+const getPendingApprovals = async (req, res) => {
+    try {
+        const memberApproval = await MemberApproval.find({status: "Pending"});
+        res.status(200).json(memberApproval);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+
 const updateApproval = async (req, res) => {
     try {
         const {status} = req.body;
@@ -71,6 +82,7 @@ const updateApproval = async (req, res) => {
 export{
     createMemberApproval,
     getAllApprovals,
+    getPendingApprovals,
     getApproval,
     updateApproval
 }
