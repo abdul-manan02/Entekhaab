@@ -1,4 +1,5 @@
 import Party from '../models/party.js'
+import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs';
 import axios from 'axios'
 
@@ -10,6 +11,34 @@ const getAllParties = async (req, res) => {
         res.status(404).json({message: error.message})
     }
 }
+
+const login = async (req, res) => {
+    try {
+        const { leaderAccountCNIC, password } = req.body;
+
+        const party = await Party.findOne({ leaderAccountCNIC });
+
+        if (!party) {
+            return res.status(400).json({ msg: "No party found with this CNIC" });
+        }
+
+        if (!party.approved) {
+            return res.status(400).json({ msg: "Party is not approved" });
+        }
+
+        const isMatch = await bcrypt.compare(password, party.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ msg: "Invalid password" });
+        }
+
+        const token = jwt.sign({ userId: party._id }, process.env.JWT_KEY, { expiresIn: '24h' });
+
+        res.status(200).json({ msg: "Login successful", token });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 
 const createParty = async (req, res) => {
     try {
@@ -54,9 +83,9 @@ const getParty = async (req, res) => {
 
 const updateApproval = async (req, res) => {
     try {
+        console.log("HELLO")
         const { name } = req.params;
         const updatedParty = await Party.findOneAndUpdate({ name }, {approved: true}, {new: true, runValidators: true});
-
         if (!updatedParty) {
             return res.status(404).json({ msg: 'Party not found' });
         }
@@ -70,7 +99,7 @@ const updateApproval = async (req, res) => {
 const updateParty = async (req, res) => {
     try {
         const { id } = req.params;
-        const { leaderAccountId, memberID, action } = req.body;
+        const { leaderAccountId, memberID, action, token } = req.body;
         
         const party = await Party.findById(id);
         if (!party) {
@@ -86,8 +115,12 @@ const updateParty = async (req, res) => {
             if (action === 'Add') {
                 if (!party.memberIDs.includes(memberID)) {
                     update.$addToSet = { memberIDs: memberID };
-                    const endpoint = `http://localhost:1001/api/v1/candidate/updateParty/${memberID}`;
-                    response = await axios.patch(endpoint, {partyId: id});
+                    const endpoint = `http://localhost:1001/api/v1/candidate/id/${memberID}/updateParty`;
+                    response = await axios.patch(endpoint, {partyId: id},{
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
                 } else {
                     return res.status(400).json({ msg: 'Member already exists' });
                 }
@@ -95,7 +128,11 @@ const updateParty = async (req, res) => {
                 if (party.memberIDs.includes(memberID)) {
                     update.$pull = { memberIDs: memberID };
                     const endpoint = `http://localhost:1001/api/v1/candidate/updateParty/${memberID}`;
-                    response = await axios.patch(endpoint, {partyId: null});
+                    response = await axios.patch(endpoint, {partyId: null},{
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
                 } else {
                     return res.status(400).json({ msg: 'Member does not exist' });
                 }
@@ -114,6 +151,7 @@ export{
     getAllParties,
     getParty,
     createParty,
+    login,
     updateApproval,
     updateParty
 }
