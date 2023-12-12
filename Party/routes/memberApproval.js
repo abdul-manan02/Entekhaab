@@ -11,6 +11,6 @@ import{
 
 router.route('/').post(createMemberApproval).get(getAllApprovals);
 router.route('/pending').get(getPendingApprovals);
-router.route('/:id').get(getApproval).patch(updateApproval);
+router.route('/id/:id').get(getApproval).patch(updateApproval);
 
 export default router;
