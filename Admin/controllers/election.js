@@ -85,7 +85,7 @@ const getAllElections = async (req, res) => {
 const getCreatedElections = async (req, res) => {
     try {
         const elections = await Election.find({ isStarted: false, isFinished: false });
-        res.json(elections);
+        res.status(200).json(elections);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -95,7 +95,7 @@ const getCreatedElections = async (req, res) => {
 const getStartedElections = async (req, res) => {
     try {
         const elections = await Election.find({ isStarted: true, isFinished: false });
-        res.json(elections);
+        res.status(200).json(elections);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -105,7 +105,7 @@ const getStartedElections = async (req, res) => {
 const getFinishedElections = async (req, res) => {
     try {
         const elections = await Election.find({ isStarted: true, isFinished: true });
-        res.json(elections);
+        res.status(200).json(elections);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
