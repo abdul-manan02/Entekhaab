@@ -12,14 +12,16 @@ const getAllAccounts = async (req, res) => {
     }
 }
 
-// User initiates getCitizenDataByCnic.
-// The provided CNIC and name are compared with the citizen data.
-// If there's a match, the user is offered a SIM selection option.
-// Upon selecting a SIM, an OTP (One-Time Password) is sent.
-// After OTP verification, the user inputs a password.
-// The user is presented with two addresses and selects one.
-// The frontend sends the following attributes in req.body.
-// A voter record is created.
+/*
+    User initiates getCitizenDataByCnic.
+    The provided CNIC and name are compared with the citizen data.
+    If there's a match, the user is offered a SIM selection option.
+    Upon selecting a SIM, an OTP (One-Time Password) is sent.
+    After OTP verification, the user inputs a password.
+    The user is presented with two addresses and selects one.
+    The frontend sends the following attributes in req.body.
+    A voter record is created.
+*/
 const createAccount = async (req, res) => {
     try {
         const { cnic, password, citizenDataId, selectedSim, votingAddress } = req.body
@@ -32,8 +34,6 @@ const createAccount = async (req, res) => {
             citizenDataId,
             selectedSim,
             votingAddress,
-            // this is the default independent party
-            // party: "656742d3e1650a1398e8b7b9"
         }
         const newUser = await Voter_Candidate.create(newAccount)
         res.status(201).json({ newUser })
@@ -53,26 +53,63 @@ const login = async (req, res) => {
         if (!isMatch)
             return res.status(400).json({ msg: "Invalid credentials" })
 
-        //const token = jwt.sign({ userId: account._id }, process.env.JWT_SECRET, { expiresIn: '20m' })
+        const token = jwt.sign({ userId: account._id }, process.env.JWT_KEY, { expiresIn: '24h' })
 
-        //res.status(201).json({ account, token })
-        res.status(201).json({ account})
+        res.status(201).json({ account, token})
     } catch (error) {
         res.status(500).json({ msg: error })
     }
 }
 
+
 const getAccount = async (req, res) => {
     try {
-        const account = await Voter_Candidate.findById(req.params.id)
-
-        if (account) {
-            res.status(201).json({ account });
-        } else {
-            res.status(404).json({ msg: 'Account not found' });
+        const account = await Voter_Candidate.findById(req.params.id);
+        
+        if (!account) {
+            return res.status(404).json({ msg: "Account not found" });
         }
+
+        const citizenDataEndpoint = `http://localhost:1000/api/v1/citizenData/id/${account.citizenDataId}`;
+        const citizenDataResponse = await axios.get(citizenDataEndpoint);
+
+        if (!citizenDataResponse.data) {
+            return res.status(404).json({ msg: "Citizen data not found" });
+        }
+
+        const citizenData = citizenDataResponse.data;
+        const { citizenDataId, ...accountData } = account.toObject();
+        accountData.CitizenData = citizenData;
+        res.json(accountData);
     } catch (error) {
         res.status(500).json({ msg: error.message });
+    }
+};
+
+
+const getElections = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const {token} = req.body;
+        const electionEndpoint = `http://localhost:1002/api/v1/admin/election/started`;
+        const electionResponse = await axios.get(electionEndpoint,{
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        const elections = electionResponse.data;
+        console.log(elections)
+        const isVoterInElection = elections.some(election => 
+            election.voter_bank.some(voter => voter.voterId === id)
+        );
+
+        if (isVoterInElection) {
+            res.json(elections);
+        } else {
+            res.json({ msg: "Voter is not in the election" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -112,6 +149,7 @@ export {
     createAccount,
     login,
     getAccount,
+    getElections,
     changeSelectedAddress,
     changeSelectedSim
 }
