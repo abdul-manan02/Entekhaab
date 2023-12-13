@@ -25,6 +25,33 @@ const createRequest = async(req,res) => {
     }
 };
 
+const getPendingRequests = async(req,res) => {
+    try {
+        const { token } = req.body;
+
+        // Find all candidate approval documents where status is "Pending"
+        const pendingApprovals = await CandidateApproval.find({ status: "Pending" });
+
+        const results = await Promise.all(pendingApprovals.map(async (approval) => {
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.accountId}`;
+            const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            return {
+                ...approval.toObject(),
+                voterCandidate: voterCandidateResponse.data
+            };
+        }));
+
+        res.status(200).json({ results });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 const getRequest = async(req,res) =>{
     try {
         const { id } = req.params; // Assuming you're passing the document ID in the URL parameter
@@ -55,6 +82,7 @@ const getRequest = async(req,res) =>{
     }
 }
 
+
 // admin fetches all requests
 // if status="Rejected", just update request
 // if status="Accepted", update Request and call updateCandidate of Voter_Candidate microservice
@@ -72,16 +100,14 @@ const updateRequest = async (req, res) => {
             if (!updatedRequest) {
                 return res.status(404).json({ msg: "Request not found" });
             }
-
-            const { accountId } = req.body;
-            const endPoint = `http://localhost:1001/api/v1/candidate/${accountId}`;
+            const accountId = updatedRequest.accountId;
+            const endPoint = `http://localhost:1001/api/v1/candidate/id/${accountId}/approveCandidate`;
             const candidateResponse = await axios.patch(endPoint, { isCandidate: true },{
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
-            
-            return res.json({ response: candidateResponse.data });
+            return res.status(200).json({ response: candidateResponse.data });
         } else {
             return res.status(400).json({ msg: "Status can only be Accepted or Rejected" });
         }
@@ -94,6 +120,7 @@ const updateRequest = async (req, res) => {
 export{
     getAllRequests,
     getRequest,
+    getPendingRequests,
     createRequest,
     updateRequest
 }

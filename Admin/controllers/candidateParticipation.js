@@ -30,11 +30,15 @@ const getRequest = async (req, res) => {
 
 const updateStatus = async (req, res) => {
     try {
-        const {status} = req.body
+        const {status, token} = req.body
         const request = await CandiateParticipation.findByIdAndUpdate(req.params.id, {status}, {runValidators:true, new: true})
         if(status === "Accepted"){
             const {accountId, partyId, constituencyId, electionId} = request
-            const {data} = await axios.patch(`http://localhost:1002/api/v1/admin/election/${electionId}/addCandidate`, {candidateId: accountId, partyId, constituencyId})
+            const {data} = await axios.patch(`http://localhost:1002/api/v1/admin/election/id/${electionId}/addCandidate`, {candidateId: accountId, partyId, constituencyId},{
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
             res.status(200).json({data})
         }
         

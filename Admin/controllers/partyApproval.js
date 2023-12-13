@@ -10,9 +10,15 @@ const getAllRequests = async(req,res) =>{
     }
 }
 
-// write the code for thecontroller for getting single party using id as params
-// write the code for the controller for updating the party using id as params
-// write the code for the controller for deleting the party using id as params
+const getPendingRequests = async(req,res) =>{
+    try {
+        const allRequests = await partyApproval.find({status: "Pending"})
+        res.status(200).send(allRequests)    
+    } catch (error) {
+        res.status(404).json({msg: error})
+    }
+}
+
 
 const getParty = async(req,res) =>{
     try {
@@ -38,12 +44,16 @@ const createRequest = async(req,res) =>{
 const updateRequest = async(req,res) =>{
     try {
         const {id} = req.params
-        const { status, name } = req.body
+        const { status, token } = req.body
         const request = await partyApproval.findOneAndUpdate({_id: id}, {status}, {new: true, runValidators: true});
         if(!request)
             return res.status(404).json({msg: "No request found"})
         if(status==="Accepted"){
-            const response = await axios.patch(`http://localhost:1003/api/v1/party/approval/${name}`)
+            const response = await axios.patch(`http://localhost:1003/api/v1/party/name/${request.name}/approval`,{
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
             return res.json({request, response: response.data})
         }
         res.status(200).json(request)
@@ -54,6 +64,7 @@ const updateRequest = async(req,res) =>{
 
 export{
     getAllRequests,
+    getPendingRequests,
     getParty,
     createRequest,
     updateRequest
