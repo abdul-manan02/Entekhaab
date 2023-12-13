@@ -10,7 +10,6 @@ app.use(express.json());
 app.use('/api/v1/voter', votersRouter)
 app.use('/api/v1/candidate', candidateRouter)
 
-
 const port = process.env.PORT || 1001
 const start = async() =>{
     try {
