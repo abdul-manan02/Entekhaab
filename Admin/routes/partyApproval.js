@@ -12,6 +12,6 @@ import {
 router.route('/')
     .post(authMiddleware, createRequest).get(authMiddleware, getAllRequests)
 router.route('/id/:id')
-    .patch(authMiddleware, updateRequest).get(authMiddleware, getParty)
+    .put(authMiddleware, updateRequest).get(authMiddleware, getParty)
 
 export default router

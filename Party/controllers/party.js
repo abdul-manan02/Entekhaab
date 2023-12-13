@@ -42,6 +42,7 @@ const login = async (req, res) => {
 
 const createParty = async (req, res) => {
     try {
+        console.log(req.body)
         const { name, leaderAccountCNIC, password, selectedSim, proof } = req.body;
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
