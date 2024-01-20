@@ -1,20 +1,61 @@
 import Citizen from "../models/citizenData.js";
+import multer from 'multer'
 
 // Create a new citizen
+// const createCitizen = async (req, res) => {
+//     const citizen = new Citizen(req.body);
+//     try {
+//         await citizen.save();
+//         res.status(201).json(citizen);
+//     } catch (error) {
+//         res.status(400).json({ message: error.message });
+//     }
+// };
+
+
 const createCitizen = async (req, res) => {
-    const citizen = new Citizen(req.body);
     try {
+        const citizenData = {
+          cnic: req.body.cnic,
+          name: req.body.name,
+          dateOfBirth: req.body.dateOfBirth,
+          gender: req.body.gender,
+          maritalStatus: req.body.maritalStatus,
+          permanentAddress: {
+            house: req.body['permanentAddress.house'],
+            street: req.body['permanentAddress.street'],
+            area: req.body['permanentAddress.area'],
+            city: req.body['permanentAddress.city'],
+            province: req.body['permanentAddress.province'],
+          },
+          temporaryAddress: {
+            house: req.body['temporaryAddress.house'],
+            street: req.body['temporaryAddress.street'],
+            area: req.body['temporaryAddress.area'],
+            city: req.body['temporaryAddress.city'],
+            province: req.body['temporaryAddress.province'],
+          },
+          sims: req.body.sims,
+        };
+    
+        if (req.files) {
+            citizenData.images = req.files.map(file => ({ data: file.buffer }));
+          }
+    
+        const citizen = new Citizen(citizenData);
         await citizen.save();
-        res.status(201).json(citizen);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
+    
+        res.status(200).json({ message: 'Citizen data uploaded successfully' });
+    } catch (e) {
+        res.status(500).json({ error: e.toString() });
     }
 };
 
 // Get all citizens
 const getAllCitizens = async (req, res) => {
     try {
-        const citizens = await Citizen.find();
+        //const citizens = await Citizen.find();
+        const citizens = await Citizen.find().select('-images');
         res.status(200).json({ citizens, length: citizens.length });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -24,7 +65,8 @@ const getAllCitizens = async (req, res) => {
 const getCitizenByCnic = async (req, res) => {
     //console.log(req.params.cnic);
     try {
-        const citizen = await Citizen.findOne({ cnic: req.params.cnic });
+        //const citizen = await Citizen.findOne({ cnic: req.params.cnic });
+        const citizen = await Citizen.findOne({ cnic: req.params.cnic }).select('-images');;
         if (citizen == null) {
             return res.status(404).json({ message: "Cannot find citizen" });
         }
@@ -34,6 +76,33 @@ const getCitizenByCnic = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+const getCitizenImageByCnic = async (req, res) => {
+    try {
+        const { cnic, imageId } =  req.params;
+        const citizen = await Citizen.findOne({ cnic });
+        
+        if (!citizen) {
+            return res.status(404).json({ message: 'Citizen not found' });
+        }
+
+        let image;
+        if (imageId) {
+            image = citizen.images[imageId];
+        } else {
+            image = citizen.images[0];
+        }
+        
+        if (!image) {
+            return res.status(404).json({ message: 'Image not found' });
+        }
+
+        res.set('Content-Type', "image/jpeg");
+        res.send(image.data);
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred', error: error.message });
+    }
+}
 
 const getCitizenById = async (req, res) => {
     try {
@@ -47,6 +116,33 @@ const getCitizenById = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+const getCitizenImageById = async (req, res) => {
+    try {
+        const { id, imageId } = req.params;
+        const citizen = await Citizen.findById(id);
+        
+        if (!citizen) {
+            return res.status(404).json({ message: 'Citizen not found' });
+        }
+
+        let image;
+        if (imageId) {
+            image = citizen.images[imageId];
+        } else {
+            image = citizen.images[0];
+        }
+        
+        if (!image) {
+            return res.status(404).json({ message: 'Image not found' });
+        }
+
+        res.set('Content-Type', "image/jpeg");
+        res.send(image.data);
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred', error: error.message });
+    }
+}
 
 const updateCitizenByCnic = async (req, res) => {
     try {
@@ -87,4 +183,6 @@ export {
     getCitizenById,
     updateCitizenByCnic,
     updateCitizenById,
+    getCitizenImageById,
+    getCitizenImageByCnic
 };
