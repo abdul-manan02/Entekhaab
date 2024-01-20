@@ -54,8 +54,8 @@ const createCitizen = async (req, res) => {
 // Get all citizens
 const getAllCitizens = async (req, res) => {
     try {
-        //const citizens = await Citizen.find();
-        const citizens = await Citizen.find().select('-images');
+        const citizens = await Citizen.find();
+        //const citizens = await Citizen.find().select('-images');
         res.status(200).json({ citizens, length: citizens.length });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -65,8 +65,8 @@ const getAllCitizens = async (req, res) => {
 const getCitizenByCnic = async (req, res) => {
     //console.log(req.params.cnic);
     try {
-        //const citizen = await Citizen.findOne({ cnic: req.params.cnic });
-        const citizen = await Citizen.findOne({ cnic: req.params.cnic }).select('-images');;
+        const citizen = await Citizen.findOne({ cnic: req.params.cnic });
+        //const citizen = await Citizen.findOne({ cnic: req.params.cnic }).select('-images');;
         if (citizen == null) {
             return res.status(404).json({ message: "Cannot find citizen" });
         }

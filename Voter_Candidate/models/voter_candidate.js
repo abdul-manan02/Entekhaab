@@ -25,7 +25,7 @@ const voterCandidateSchema = new mongoose.Schema({
             values: ['Permanent', 'Temporary'],
             message: '${VALUE} is invalid'
         },
-        required: [true, 'Voting address must be set'] 
+        default: 'Permanent' 
     },
     voterHistory:{
         type: [mongoose.Schema.Types.ObjectId],

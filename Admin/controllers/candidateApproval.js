@@ -12,14 +12,17 @@ const getAllRequests = async(req,res) =>{
 
 const createRequest = async(req,res) => {
     try {
-        const { accountId, proof } = req.body;
-        
-        const newCandidateApproval = await CandidateApproval.create({
-            accountId,
-            proof
-        });
+        const request = { 
+            accountId: req.body.accountId
+        }
 
-        res.status(201).json({ newCandidateApproval });
+        if (req.file) {
+            request.proof = req.file.buffer;
+        }
+        
+        const newRequest = new CandidateApproval(request);
+        await newRequest.save();
+        res.status(201).json({ newRequest });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -75,13 +78,29 @@ const getRequest = async(req,res) =>{
             ...candidateApproval.toObject(),
             voterCandidate: voterCandidateResponse.data
         };
-
+        
         res.status(200).json({ result });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
 
+const getRequestProof = async(req,res) =>{
+    try {
+        const pdf = await CandidateApproval.findById(req.params.id);
+  
+        // Check if the PDF document was found
+        if (!pdf) {
+            return res.status(404).json({ error: 'PDF not found' });
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline; filename="' + pdf.name + '"');
+        res.status(200).send(pdf.proof);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
 
 // admin fetches all requests
 // if status="Rejected", just update request
@@ -122,5 +141,6 @@ export{
     getRequest,
     getPendingRequests,
     createRequest,
-    updateRequest
+    updateRequest,
+    getRequestProof
 }
