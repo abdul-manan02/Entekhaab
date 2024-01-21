@@ -12,12 +12,12 @@ import {
     updateRequest,
     getRequestProof
 } from '../controllers/candidateApproval.js'
-//authMiddleware,
+
 router.route('/')
-    .post(upload.single('documents'),  createRequest).get(authMiddleware, getAllRequests)
+    .post(upload.single('documents'), authMiddleware, createRequest).get(authMiddleware, getAllRequests)
 router.route('/id/:id')
     .patch(authMiddleware, updateRequest).get(getRequest)
 router.route('/pending').get(authMiddleware, getPendingRequests)
-router.route('/id/:id/proof').get(getRequestProof)
+router.route('/id/:id/proof').get(authMiddleware, getRequestProof)
 
 export default router

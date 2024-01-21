@@ -4,7 +4,12 @@ import axios from 'axios'
 const getAllRequests = async(req,res) =>{
     try {
         const allRequests = await CandidateApproval.find()
-        res.send(allRequests)    
+        const modifiedRequests = allRequests.map(request => {
+            let requestObject = request.toObject();
+            delete requestObject.proof;
+            return requestObject;
+        });
+        res.status(200).json(modifiedRequests);    
     } catch (error) {
         res.status(404).json({msg: error})
     }
@@ -22,7 +27,9 @@ const createRequest = async(req,res) => {
         
         const newRequest = new CandidateApproval(request);
         await newRequest.save();
-        res.status(201).json({ newRequest });
+        const newRequestObject = newRequest.toObject();
+        delete newRequestObject.proof;
+        res.status(201).json({ newRequest: newRequestObject });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -30,13 +37,13 @@ const createRequest = async(req,res) => {
 
 const getPendingRequests = async(req,res) => {
     try {
-        const { token } = req.body;
+        const token = req.headers['authorization'].split(' ')[1];
 
         // Find all candidate approval documents where status is "Pending"
         const pendingApprovals = await CandidateApproval.find({ status: "Pending" });
-
         const results = await Promise.all(pendingApprovals.map(async (approval) => {
-            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.accountId}`;
+            const { proof, ...approvalWithoutProof } = approval.toObject();
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approvalWithoutProof.accountId}`;
             const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -44,7 +51,7 @@ const getPendingRequests = async(req,res) => {
             });
 
             return {
-                ...approval.toObject(),
+                ...approvalWithoutProof,
                 voterCandidate: voterCandidateResponse.data
             };
         }));
@@ -55,35 +62,37 @@ const getPendingRequests = async(req,res) => {
     }
 };
 
-const getRequest = async(req,res) =>{
+const getRequest = async(req,res) => {
     try {
         const { id } = req.params; // Assuming you're passing the document ID in the URL parameter
-        const {token} = req.body
+        const token = req.headers['authorization'].split(' ')[1]; // Extract token from headers
+
         // Find the candidate approval document by ID
         const candidateApproval = await CandidateApproval.findById(id);
 
         if(!candidateApproval) {
             return res.status(404).json({ msg: "Request not found" });
         }
-        
-        const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${candidateApproval.accountId}`;
+
+        const { proof, ...approvalWithoutProof } = candidateApproval.toObject();
+
+        const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approvalWithoutProof.accountId}`;
         const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
-        const response = voterCandidateResponse.data;
 
-        const result = {
-            ...candidateApproval.toObject(),
-            voterCandidate: voterCandidateResponse.data
-        };
-        
-        res.status(200).json({ result });
+        res.status(200).json({ 
+            approval: {
+                ...approvalWithoutProof,
+                voterCandidate: voterCandidateResponse.data
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-}
+};
 
 const getRequestProof = async(req,res) =>{
     try {
@@ -109,7 +118,8 @@ const getRequestProof = async(req,res) =>{
 const updateRequest = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, token } = req.body;
+        const { status } = req.body;
+        const token = req.headers['authorization'].split(' ')[1]; // Extract token from headers
         if (status === "Accepted" || status === "Rejected") {
             const updatedRequest = await CandidateApproval.findByIdAndUpdate({_id:id}, { status }, { new: true, runValidators: true });
 

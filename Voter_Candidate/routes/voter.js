@@ -20,7 +20,6 @@ router.route('/id/:id').get(authMiddleware, getAccount)
 router.route('/id/:id/changeSim').patch(authMiddleware, changeSelectedSim)
 router.route('/id/:id/changeAddress').patch(authMiddleware, changeSelectedAddress)
 router.route('/id/:id/getElections').get(authMiddleware, getElections)
-router.route('/login').post(login)
 
 
 export default router

@@ -12,8 +12,7 @@ const party_approval = new mongoose.Schema({
     },
     // proof should be a pdf containing all the proofs //
     proof: {
-        type: String,
-        immutable: true,
+        type: Buffer,
         required: [true, "All relevant forms and documents should be provided in the pdf"]
     },
     // this will automatically be submitted along with the request

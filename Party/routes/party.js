@@ -1,6 +1,8 @@
 import authMiddleware from '../middleware/authMiddleware.js'
 import express from 'express'
 const router = express.Router()
+import multer from 'multer'
+const upload = multer({ storage: multer.memoryStorage() });
 
 import{
     getAllParties,
@@ -12,16 +14,12 @@ import{
 } from '../controllers/party.js'
 
 router.route('/login').post(login)
-router.route('/signup').post(createParty)
+router.route('/signup').post(upload.single('documents'), createParty)
 
 router.route('/id/:id')
-    .patch(updateParty).get(getParty)
+    .patch(authMiddleware, updateParty).get(authMiddleware, getParty)
 router.route('/name/:name/approval')
-    .patch(updateApproval)
-// router.route('/id/:id')
-//     .patch(authMiddleware, updateParty).get(authMiddleware, getParty)
-// router.route('/name/:name/approval')
-//     .patch(authMiddleware, updateApproval)
+    .patch(authMiddleware, updateApproval)
 
 export default router
 

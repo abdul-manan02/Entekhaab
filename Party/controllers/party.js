@@ -42,7 +42,7 @@ const login = async (req, res) => {
 
 const createParty = async (req, res) => {
     try {
-        const { name, leaderAccountCNIC, password, selectedSim, proof } = req.body;
+        const { name, leaderAccountCNIC, password, selectedSim } = req.body;
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -57,8 +57,12 @@ const createParty = async (req, res) => {
         const partyApproval = {
             name,
             leaderCNIC: leaderAccountCNIC,
-            proof
         }
+        
+        if (req.file) {
+            partyApproval.proof = req.file.buffer;
+        }
+        
         const response = await axios.post(`http://localhost:1002/api/v1/admin/partyApproval`, partyApproval)
         res.json({party: savedParty, approval: response.data})
     } catch (error) {
@@ -83,7 +87,6 @@ const getParty = async (req, res) => {
 
 const updateApproval = async (req, res) => {
     try {
-        console.log("HELLO")
         const { name } = req.params;
         const updatedParty = await Party.findOneAndUpdate({ name }, {approved: true}, {new: true, runValidators: true});
         if (!updatedParty) {

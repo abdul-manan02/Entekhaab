@@ -32,8 +32,7 @@ const createAccount = async (req, res) => {
             cnic,
             password: hashedPassword,
             citizenDataId,
-            selectedSim,
-            votingAddress,
+            selectedSim
         }
         const newUser = await Voter_Candidate.create(newAccount)
         res.status(201).json({ newUser })
@@ -72,7 +71,6 @@ const getAccount = async (req, res) => {
 
         const citizenDataEndpoint = `http://localhost:1000/api/v1/citizenData/id/${account.citizenDataId}`;
         const citizenDataResponse = await axios.get(citizenDataEndpoint);
-
         if (!citizenDataResponse.data) {
             return res.status(404).json({ msg: "Citizen data not found" });
         }

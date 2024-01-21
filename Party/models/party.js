@@ -3,11 +3,13 @@ import mongoose from 'mongoose';
 const partySchema = new mongoose.Schema({
     name:{
         type: String,
-        required: true
+        required: true,
+        unique: true    
     },
     leaderAccountCNIC:{
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     password:{
         type: String,

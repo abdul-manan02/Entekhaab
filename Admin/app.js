@@ -11,9 +11,12 @@ import election from './routes/election.js'
 import candidateParticipation from './routes/candidateParticipation.js'
 import cors from 'cors'
 
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb', extended: true, parameterLimit: 50000}));
+
 app.use(cors())
 // middleware
-app.use(express.json());
+//app.use(express.json());
 app.use('/api/v1/admin/candidateApproval', candidateApproval)
 app.use('/api/v1/admin/partyApproval', partyApproval)
 app.use('/api/v1/admin/constituency', constituencies)
