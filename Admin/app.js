@@ -9,6 +9,7 @@ import constituencies from './routes/constituencies.js'
 import login from './routes/login_signup.js'
 import election from './routes/election.js'
 import candidateParticipation from './routes/candidateParticipation.js'
+import constituencyChange from './routes/constituencyChangeRequest.js'
 import cors from 'cors'
 
 app.use(express.json({limit: '50mb'}));
@@ -23,7 +24,7 @@ app.use('/api/v1/admin/constituency', constituencies)
 app.use('/api/v1/admin', login)
 app.use('/api/v1/admin/election', election)
 app.use('/api/v1/admin/candidateParticipation', candidateParticipation)
-
+app.use('/api/v1/admin/constituencyChangeRequest', constituencyChange)
 app.use("*", cors())
 
 const port = process.env.PORT || 1002

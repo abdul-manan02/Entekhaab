@@ -115,9 +115,10 @@ const getElections = async (req, res) => {
 const changeSelectedAddress = async (req, res) => {
     try {
         const account = await Voter_Candidate.findByIdAndUpdate(
-            req.params.id, { selectedAddress: req.body.selectedAddress },
+            req.params.id, { votingAddress: req.body.selectedAddress },
             { new: true, runValidators: true }
         );
+        
         if (account)
             res.status(201).json({ account })
         else
