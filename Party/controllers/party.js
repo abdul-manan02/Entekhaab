@@ -102,7 +102,8 @@ const updateApproval = async (req, res) => {
 const updateParty = async (req, res) => {
     try {
         const { id } = req.params;
-        const { leaderAccountId, memberID, action, token } = req.body;
+        const { leaderAccountId, memberID, action } = req.body;
+        const token = req.headers['authorization'].split(' ')[1];
         
         const party = await Party.findById(id);
         if (!party) {

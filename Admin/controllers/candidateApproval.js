@@ -3,13 +3,26 @@ import axios from 'axios'
 
 const getAllRequests = async(req,res) =>{
     try {
-        const allRequests = await CandidateApproval.find()
-        const modifiedRequests = allRequests.map(request => {
-            let requestObject = request.toObject();
-            delete requestObject.proof;
-            return requestObject;
-        });
-        res.status(200).json(modifiedRequests);    
+        const token = req.headers['authorization'].split(' ')[1];
+
+        // Find all candidate approval documents where status is "Pending"
+        const requests = await CandidateApproval.find();
+        const results = await Promise.all(requests.map(async (approval) => {
+            const { proof, ...approvalWithoutProof } = approval.toObject();
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approvalWithoutProof.accountId}`;
+            const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            return {
+                ...approvalWithoutProof,
+                voterCandidate: voterCandidateResponse.data
+            };
+        }));
+
+        res.status(200).json({ results });    
     } catch (error) {
         res.status(404).json({msg: error})
     }

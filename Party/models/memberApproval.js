@@ -11,8 +11,7 @@ const member_approval = new mongoose.Schema({
         required: [true, "Citizen Data must be provided"]
     },
     proof: {
-        type: String,
-        immutable: true,
+        type: Buffer,
         required: [true, "All relevant forms and documents should be provided in the pdf"]
     },
     submitTime: {
