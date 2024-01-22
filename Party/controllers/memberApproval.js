@@ -159,6 +159,11 @@ const updateApproval = async (req, res) => {
     try {
         const {status} = req.body;
         const token = req.headers['authorization'].split(' ')[1];
+
+        if(status != "Accepted" && status != "Rejected"){
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+
         const approval = await MemberApproval.findByIdAndUpdate(req.params.id, {status}, { new: true });
         if (!approval) {
             return res.status(404).json({ message: 'Approval not found' });
@@ -183,10 +188,6 @@ const updateApproval = async (req, res) => {
             };
             res.status(200).json(response);
         }
-        else{
-            res.status(400).json({ message: 'Invalid status' });
-        }
-        
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

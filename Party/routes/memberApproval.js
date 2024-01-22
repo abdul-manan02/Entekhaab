@@ -18,7 +18,7 @@ router.route('/')
     .post(upload.single('documents'), authMiddleware, createMemberApproval).get(authMiddleware, getAllApprovals);
 
 router.route('/id/:id')
-    .get(getApproval).patch(authMiddleware, updateApproval);
+    .get(authMiddleware, getApproval).patch(authMiddleware, updateApproval);
 
 router.route('/id/:id/proof').get(authMiddleware, getRequestProof)
 
