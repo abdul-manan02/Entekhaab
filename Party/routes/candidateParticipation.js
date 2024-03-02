@@ -21,6 +21,6 @@ router.route('/partyId/:partyId/constituency').get(authMiddleware, getAllRequest
 router.route('/partyId/:partyId/pending').get(authMiddleware, getPendingRequestsForParty)
 router.route('/partyId/:partyId/pending/constituency').get(authMiddleware, getPendingRequestsForPartyForConstituency)
 
-router.route('/partyId/:partyId/id/:id').get(authMiddleware, getRequest).patch(authMiddleware, updateStatus)
+router.route('/id/:id').get(authMiddleware, getRequest).patch(authMiddleware, updateStatus)
 
 export default router

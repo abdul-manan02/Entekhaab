@@ -63,7 +63,6 @@ const getAllRequestsForParty = async (req, res) => {
             };
         }));
         res.status(200).json({results})
-        res.status(200).json({requests})
     } catch (error) {
         res.status(500).json({msg: error})
     }
@@ -73,15 +72,31 @@ const getAllRequestsForPartyForConstituency = async (req, res) => {
     try {
         const {partyId} = req.params
         const {constituencyId} = req.body
+        const token = req.headers['authorization'].split(' ')[1];
         if(!constituencyId){
             return res.status(400).json({msg: "constituencyId is required"})
         }
 
         const requests = await CandiateParticipation.find({partyId, constituencyId})
+
         if(requests.length === 0){
             return res.status(404).json({msg: "No requests found"})
         }
-        res.status(200).json({requests})
+
+        const results = await Promise.all(requests.map(async (approval) => {
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.accountId}`;
+            const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            return {
+                ...approval.toObject(),
+                voterCandidate: voterCandidateResponse.data
+            };
+        }));
+        res.status(200).json({results})
     } catch (error) {
         res.status(500).json({msg: error})
     }
@@ -90,12 +105,25 @@ const getAllRequestsForPartyForConstituency = async (req, res) => {
 const getPendingRequestsForParty = async (req, res) => {
     try {
         const {partyId} = req.params
-
+        const token = req.headers['authorization'].split(' ')[1];
         const requests = await CandiateParticipation.find({partyId, status: "Pending"})
         if(requests.length === 0){
             return res.status(404).json({msg: "No requests found"})
         }
-        res.status(200).json({requests})
+        const results = await Promise.all(requests.map(async (approval) => {
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.accountId}`;
+            const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            return {
+                ...approval.toObject(),
+                voterCandidate: voterCandidateResponse.data
+            };
+        }));
+        res.status(200).json({results})
     } catch (error) {
         res.status(500).json({msg: error})
     }
@@ -105,6 +133,7 @@ const getPendingRequestsForPartyForConstituency = async (req, res) => {
     try {
         const {partyId} = req.params
         const {constituencyId} = req.body
+        const token = req.headers['authorization'].split(' ')[1];
         if(!constituencyId){
             return res.status(400).json({msg: "constituencyId is required"})
         }
@@ -112,7 +141,20 @@ const getPendingRequestsForPartyForConstituency = async (req, res) => {
         if(requests.length === 0){
             return res.status(404).json({msg: "No requests found"})
         }
-        res.status(200).json({requests})
+        const results = await Promise.all(requests.map(async (approval) => {
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.accountId}`;
+            const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            return {
+                ...approval.toObject(),
+                voterCandidate: voterCandidateResponse.data
+            };
+        }));
+        res.status(200).json({results})
     } catch (error) {
         res.status(500).json({msg: error})
     }
@@ -121,10 +163,25 @@ const getPendingRequestsForPartyForConstituency = async (req, res) => {
 
 const getRequest = async (req, res) => {
     try {
+        const token = req.headers['authorization'].split(' ')[1];
         const request = await CandiateParticipation.findById(req.params.id)
         if(!request)
             return res.status(404).json({msg: "No request found"})
-        res.status(200).json({request})
+
+        const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${request.accountId}`;
+        const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        return res.status(200).json({ 
+            approval: {
+                ...request.toObject(),
+                voterCandidate: voterCandidateResponse.data
+            }
+        });
+        return res.status(200).json({request})
     } catch (error) {
         res.status(500).json({msg: error})
     }
@@ -132,10 +189,13 @@ const getRequest = async (req, res) => {
 
 const updateStatus = async (req, res) => {
     try {
+        const token = req.headers['authorization'].split(' ')[1];
+
         const {status} = req.body
         if(!status){
             return res.status(400).json({msg: "status is required"})
         }
+        
         const request = await CandiateParticipation.findByIdAndUpdate(req.params.id, {status}, {runValidators:true, new: true})
         if(!request)
             return res.status(404).json({msg: "No request found"})
@@ -143,11 +203,15 @@ const updateStatus = async (req, res) => {
 
         if(status === "Accepted"){
             const {accountId, partyId, constituencyId, electionId, proof} = request
-            const {data} = await axios.post(`http://localhost:1002/api/v1/admin/candidateParticipation`, {accountId, partyId, constituencyId, electionId, proof})
-            res.status(200).json({data})
+            const {data} = await axios.post(`http://localhost:1002/api/v1/admin/candidateParticipation/partyAffiliatedCandidate`, {accountId, partyId, constituencyId, electionId, proof}, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            return res.status(200).json({data})
         }
         
-        res.status(200).json({request})
+        return res.status(200).json({request})
     } catch (error) {
         res.status(500).json({msg: error})
     }

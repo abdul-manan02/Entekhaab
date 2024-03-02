@@ -5,15 +5,21 @@ import multer from 'multer'
 const upload = multer({ storage: multer.memoryStorage() });
 
 import{
-    createRequest,
+    createRequestForIndepenedent,
+    createRequestForPartyAffiliated,
     getAllRequests,
     getPendingRequests,
     getRequest,
     updateStatus
 } from '../controllers/candidateParticipation.js'
 
-router.route('/')
-    .post(upload.single('documents'), authMiddleware, createRequest).get(authMiddleware, getAllRequests)
+router.route('/independentCandidate')
+    .post(upload.single('documents'), authMiddleware, createRequestForIndepenedent)
+
+router.route('/partyAffiliatedCandidate')
+    .post(authMiddleware, createRequestForPartyAffiliated)
+
+router.route('/').get(authMiddleware, getAllRequests)
 router.route('/pending').get(authMiddleware, getPendingRequests)
 router.route('/id/:id')
     .get(authMiddleware, getRequest).patch(authMiddleware, updateStatus)

@@ -2,15 +2,13 @@ import CandidateParticipation from '../models/candidateParticipation.js'
 import axios from 'axios'
 import s3 from './s3Config.js'
 
-const createRequest = async (req, res) => {
+const createRequestForIndepenedent = async (req, res) => {
     try {
         const request = { 
             accountId: req.body.accountId,
             constituencyId: req.body.constituencyId,
             electionId: req.body.electionId,
         }
-
-        if(req.body.partyId) request.partyId = req.body.partyId
 
         if (req.file) {
             const file = req.file;
@@ -29,6 +27,16 @@ const createRequest = async (req, res) => {
         const newRequest = new CandidateParticipation(request);
         await newRequest.save();
         res.status(201).json({ newRequest: newRequest });
+    } catch (error) {
+        res.status(500).json({msg: error})
+    }
+}
+
+const createRequestForPartyAffiliated = async (req, res) => {
+    try {
+        const {accountId, partyId, constituencyId, electionId, proof} = req.body
+        const newRequest = await CandidateParticipation.create({accountId, partyId, constituencyId, electionId, proof})
+        res.status(201).json({newRequest})
     } catch (error) {
         res.status(500).json({msg: error})
     }
@@ -128,7 +136,8 @@ const updateStatus = async (req, res) => {
 }
 
 export{
-    createRequest,
+    createRequestForIndepenedent,
+    createRequestForPartyAffiliated,
     getAllRequests,
     getPendingRequests,
     getRequest,
