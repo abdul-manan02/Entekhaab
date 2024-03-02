@@ -3,11 +3,13 @@ import express from 'express'
 const router = express.Router()
 
 import{
-    approveCandidate,
+    approveCandidateById,
+    approveCandidateByCnic,
     updateParty
 } from '../controllers/candidate.js'
 
-router.route('/id/:id/approveCandidate').patch(authMiddleware, approveCandidate)
+router.route('/id/:id/approveCandidate').patch(authMiddleware, approveCandidateById)
+router.route('/cnic/:cnic/approveCandidate').patch(authMiddleware, approveCandidateByCnic)
 router.route('/id/:id/updateParty').patch(authMiddleware, updateParty)
 
 // router.route('/:id').patch(approveCandidate)

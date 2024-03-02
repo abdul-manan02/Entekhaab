@@ -8,7 +8,7 @@ const candidate_participation = new mongoose.Schema({
     },
     partyId:{
         type: mongoose.Schema.Types.ObjectId,
-        default: null
+        required: [true, "Must be part of a party"]
     },
     constituencyId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -39,5 +39,5 @@ const candidate_participation = new mongoose.Schema({
     }
 })
 
-const candidateParticipation = mongoose.model('Candidate_Participation_Approval', candidate_participation, 'Candidate_Participation_Approval')
+const candidateParticipation = mongoose.model('Candidate_Participation_Approval_Party', candidate_participation, 'Candidate_Participation_Approval_Party')
 export default candidateParticipation

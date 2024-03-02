@@ -1,15 +1,14 @@
 import CandidateApproval from '../models/candidateApproval.js'
 import axios from 'axios'
+import s3 from './s3Config.js'
 
 const getAllRequests = async(req,res) =>{
     try {
         const token = req.headers['authorization'].split(' ')[1];
 
-        // Find all candidate approval documents where status is "Pending"
         const requests = await CandidateApproval.find();
         const results = await Promise.all(requests.map(async (approval) => {
-            const { proof, ...approvalWithoutProof } = approval.toObject();
-            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approvalWithoutProof.accountId}`;
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.accountId}`;
             const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -17,7 +16,7 @@ const getAllRequests = async(req,res) =>{
             });
 
             return {
-                ...approvalWithoutProof,
+                ...approval.toObject(),
                 voterCandidate: voterCandidateResponse.data
             };
         }));
@@ -35,14 +34,21 @@ const createRequest = async(req,res) => {
         }
 
         if (req.file) {
-            request.proof = req.file.buffer;
+            const file = req.file;
+
+            const params = {
+                Bucket: process.env.BUCKET_NAME,
+                Key: `${Date.now()}-${file.originalname}`,
+                Body: file.buffer
+            };
+
+            const uploaded = await s3.upload(params).promise();
+            request.proof = uploaded.Location;
         }
         
         const newRequest = new CandidateApproval(request);
         await newRequest.save();
-        const newRequestObject = newRequest.toObject();
-        delete newRequestObject.proof;
-        res.status(201).json({ newRequest: newRequestObject });
+        res.status(201).json({ newRequest: newRequest });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -52,11 +58,9 @@ const getPendingRequests = async(req,res) => {
     try {
         const token = req.headers['authorization'].split(' ')[1];
 
-        // Find all candidate approval documents where status is "Pending"
         const pendingApprovals = await CandidateApproval.find({ status: "Pending" });
         const results = await Promise.all(pendingApprovals.map(async (approval) => {
-            const { proof, ...approvalWithoutProof } = approval.toObject();
-            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approvalWithoutProof.accountId}`;
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.accountId}`;
             const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -64,7 +68,7 @@ const getPendingRequests = async(req,res) => {
             });
 
             return {
-                ...approvalWithoutProof,
+                ...approval.toObject(),
                 voterCandidate: voterCandidateResponse.data
             };
         }));
@@ -87,9 +91,7 @@ const getRequest = async(req,res) => {
             return res.status(404).json({ msg: "Request not found" });
         }
 
-        const { proof, ...approvalWithoutProof } = candidateApproval.toObject();
-
-        const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approvalWithoutProof.accountId}`;
+        const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${candidateApproval.accountId}`;
         const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -98,7 +100,7 @@ const getRequest = async(req,res) => {
 
         res.status(200).json({ 
             approval: {
-                ...approvalWithoutProof,
+                ...candidateApproval.toObject(),
                 voterCandidate: voterCandidateResponse.data
             }
         });
@@ -116,9 +118,7 @@ const getRequestProof = async(req,res) =>{
             return res.status(404).json({ error: 'PDF not found' });
         }
 
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline; filename="' + pdf.name + '"');
-        res.status(200).send(pdf.proof);
+        res.status(200).json({url : pdf.proof});
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

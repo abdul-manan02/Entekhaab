@@ -14,7 +14,7 @@ const constituencyChange = new mongoose.Schema({
         }
     },
     proof: {
-        type: Buffer,
+        type: String,
         required: [true, "All relevant forms and documents should be provided in the pdf"]
     },
     

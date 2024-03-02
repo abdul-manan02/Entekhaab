@@ -1,5 +1,6 @@
 import MemberApproval from "../models/memberApproval.js";
 import axios from 'axios';
+import s3 from './s3Config.js';
 
 const createMemberApproval = async (req, res) => {
     try {
@@ -9,16 +10,23 @@ const createMemberApproval = async (req, res) => {
         }
 
         if (req.file) {
-            request.proof = req.file.buffer;
+            const file = req.file;
+
+            const params = {
+                Bucket: process.env.BUCKET_NAME,
+                Key: `${Date.now()}-${file.originalname}`,
+                Body: file.buffer
+            };
+
+            const uploaded = await s3.upload(params).promise();
+            request.proof = uploaded.Location;
         }
         
         const newRequest = new MemberApproval(request);
         await newRequest.save();
-        const newRequestObject = newRequest.toObject();
-        delete newRequestObject.proof;
-        res.status(201).json({ newRequest: newRequestObject });
+        res.status(201).json({ newRequest: newRequest });
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ error: error.message });
     }
 }
 
@@ -26,11 +34,9 @@ const getAllApprovals = async (req, res) => {
     try {
         const token = req.headers['authorization'].split(' ')[1];
 
-        // Find all candidate approval documents where status is "Pending"
         const requests = await MemberApproval.find();
         const results = await Promise.all(requests.map(async (approval) => {
-            const { proof, ...approvalWithoutProof } = approval.toObject();
-            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approvalWithoutProof.memberId}`;
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.memberId}`;
             const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -38,14 +44,14 @@ const getAllApprovals = async (req, res) => {
             });
 
             return {
-                ...approvalWithoutProof,
+                ...approval.toObject(),
                 voterCandidate: voterCandidateResponse.data
             };
         }));
-        
-        res.status(200).json({ results });
+
+        res.status(200).json({ results });    
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(404).json({msg: error})
     }
 }   
 
@@ -58,9 +64,7 @@ const getRequestProof = async(req,res) =>{
             return res.status(404).json({ error: 'PDF not found' });
         }
 
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline; filename="' + pdf.name + '"');
-        res.status(200).send(pdf.proof);
+        res.status(200).json({url : pdf.proof});
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -74,8 +78,7 @@ const getPartyRequests = async (req, res) => {
         // Find all candidate approval documents where status is "Pending"
         const requests = await MemberApproval.find({partyId});
         const results = await Promise.all(requests.map(async (approval) => {
-            const { proof, ...approvalWithoutProof } = approval.toObject();
-            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approvalWithoutProof.memberId}`;
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.memberId}`;
             const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -83,7 +86,7 @@ const getPartyRequests = async (req, res) => {
             });
 
             return {
-                ...approvalWithoutProof,
+                ...approval.toObject(),
                 voterCandidate: voterCandidateResponse.data
             };
         }));
@@ -102,8 +105,7 @@ const getPendingPartyRequests = async (req, res) => {
         // Find all candidate approval documents where status is "Pending"
         const requests = await MemberApproval.find({partyId, status: "Pending"});
         const results = await Promise.all(requests.map(async (approval) => {
-            const { proof, ...approvalWithoutProof } = approval.toObject();
-            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approvalWithoutProof.memberId}`;
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.memberId}`;
             const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -111,7 +113,7 @@ const getPendingPartyRequests = async (req, res) => {
             });
 
             return {
-                ...approvalWithoutProof,
+                ...approval.toObject(),
                 voterCandidate: voterCandidateResponse.data
             };
         }));
@@ -134,9 +136,7 @@ const getApproval = async (req, res) => {
             return res.status(404).json({ msg: "Request not found" });
         }
 
-        const { proof, ...approvalWithoutProof } = memberApproval.toObject();
-
-        const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approvalWithoutProof.memberId}`;
+        const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${memberApproval.memberId}`;
         const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -145,7 +145,7 @@ const getApproval = async (req, res) => {
 
         res.status(200).json({ 
             approval: {
-                ...approvalWithoutProof,
+                ...memberApproval.toObject(),
                 voterCandidate: voterCandidateResponse.data
             }
         });
@@ -168,22 +168,20 @@ const updateApproval = async (req, res) => {
         if (!approval) {
             return res.status(404).json({ message: 'Approval not found' });
         }
-
-        const { proof, ...memberApproval } = approval.toObject();
         
         if(status=="Rejected"){
-            res.status(200).json(memberApproval);
+            res.status(200).json(approval);
         }
         else if(status=="Accepted"){
-            const partyEndpoint = `http://localhost:1003/api/v1/party/id/${memberApproval.partyId}`;
-            const partyResponse = await axios.patch(partyEndpoint, { action:"Add", memberID: memberApproval.memberId.toString() },{
+            const partyEndpoint = `http://localhost:1003/api/v1/party/id/${approval.partyId}`;
+            const partyResponse = await axios.patch(partyEndpoint, { action:"Add", memberID: approval.memberId.toString() },{
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
             
             const response = {
-                memberApproval,
+                approval,
                 updatedParty: partyResponse.data
             };
             res.status(200).json(response);

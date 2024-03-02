@@ -2,6 +2,7 @@ import Party from '../models/party.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs';
 import axios from 'axios'
+import s3 from './s3Config.js'
 
 const getAllParties = async (req, res) => {
     try{
@@ -46,6 +47,13 @@ const createParty = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        const request = { 
+            name,
+            leaderAccountCNIC,
+            password,
+            selectedSim
+        }
+
         const newParty = new Party({
             name,
             leaderAccountCNIC,
@@ -53,14 +61,23 @@ const createParty = async (req, res) => {
             selectedSim
         });
         const savedParty = await newParty.save();
-        
+
         const partyApproval = {
             name,
             leaderCNIC: leaderAccountCNIC,
         }
-        
+
         if (req.file) {
-            partyApproval.proof = req.file.buffer;
+            const file = req.file;
+
+            const params = {
+                Bucket: process.env.BUCKET_NAME,
+                Key: `${Date.now()}-${file.originalname}`,
+                Body: file.buffer
+            };
+
+            const uploaded = await s3.upload(params).promise();
+            partyApproval.proof = uploaded.Location;
         }
         
         const response = await axios.post(`http://localhost:1002/api/v1/admin/partyApproval`, partyApproval)
@@ -98,6 +115,93 @@ const updateApproval = async (req, res) => {
         res.status(500).json({ msg: error.message });
     }
 };
+
+const updateLeaderAccountCNIC = (leaderAccountCNIC, update) => {
+    if (leaderAccountCNIC) {
+        update.leaderAccountCNIC = leaderAccountCNIC;
+    }
+};
+
+const addMember = async (party, memberID, token, update) => {
+    if (!party.memberIDs.includes(memberID)) {
+        update.$addToSet = { memberIDs: memberID };
+        const endpoint = `http://localhost:1001/api/v1/candidate/id/${memberID}/updateParty`;
+        const response = await axios.patch(endpoint, {partyId: party._id}, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response;
+    } else {
+        throw new Error('Member already exists');
+    }
+};
+
+const removeMember = async (party, memberID, token, update) => {
+    if (party.memberIDs.includes(memberID)) {
+        update.$pull = { memberIDs: memberID };
+        const endpoint = `http://localhost:1001/api/v1/candidate/id/${memberID}/updateParty`;
+        const response = await axios.patch(endpoint, {partyId: null}, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response;
+    } else {
+        throw new Error('Member does not exist');
+    }
+};
+
+const updateParty = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { leaderAccountCNIC, memberID, action } = req.body;
+        
+        const token = req.headers['authorization'].split(' ')[1];
+        
+        if (!token) {
+            return res.status(400).json({ msg: 'Authorization token is missing' });
+        } 
+
+        const party = await Party.findById(id);
+        if (!party) {
+            return res.status(404).json({ msg: 'Party not found' });
+        }
+        
+        let update = {};
+        updateLeaderAccountCNIC(leaderAccountCNIC, update);
+        let response;
+        
+        if (memberID && action) {
+            if (action === 'Add') {
+                response = await addMember(party, memberID, token, update);
+            } else if (action === 'Remove') {
+                response = await removeMember(party, memberID, token, update);
+            } else {
+                return res.status(400).json({ msg: 'Invalid action' });
+            }
+        }
+        
+        const updatedParty = await Party.findByIdAndUpdate(id, update, { runValidators:true, new: true });
+
+        res.status(200).json({ msg: 'Party updated successfully', party: updatedParty, account: response?.data });
+    } catch (error) {
+        res.status(500).json({ msg: error.message });
+    }
+};
+
+export{
+    getAllParties,
+    getParty,
+    createParty,
+    login,
+    updateApproval,
+    updateParty
+}
+
+
+
+
 
 // const updateParty = async (req, res) => {
 //     try {
@@ -165,88 +269,3 @@ const updateApproval = async (req, res) => {
 //         res.status(500).json({ msg: error.message });
 //     }
 // };
-
-const updateLeaderAccountCNIC = (leaderAccountCNIC, update) => {
-    if (leaderAccountCNIC) {
-        update.leaderAccountCNIC = leaderAccountCNIC;
-    }
-};
-
-const addMember = async (party, memberID, token, update) => {
-    const memberObjectId = mongoose.Types.ObjectId(memberID);
-    if (!party.memberIDs.includes(memberID)) {
-        update.$addToSet = { memberIDs: memberID };
-        const endpoint = `http://localhost:1001/api/v1/candidate/id/${memberID}/updateParty`;
-        const response = await axios.patch(endpoint, {partyId: party._id}, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        return response;
-    } else {
-        throw new Error('Member already exists');
-    }
-};
-
-const removeMember = async (party, memberID, token, update) => {
-    const memberObjectId = mongoose.Types.ObjectId(memberID);
-    if (party.memberIDs.includes(memberObjectId)) {
-        update.$pull = { memberIDs: memberObjectId };
-        const endpoint = `http://localhost:1001/api/v1/candidate/updateParty/${memberID}`;
-        const response = await axios.patch(endpoint, {partyId: null}, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        return response;
-    } else {
-        throw new Error('Member does not exist');
-    }
-};
-
-
-
-const updateParty = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { leaderAccountCNIC, memberID, action } = req.body;
-        const token = req.headers['authorization']?.split(' ')[1];
-        
-        if (!token) {
-            return res.status(400).json({ msg: 'Authorization token is missing' });
-        } 
-
-        const party = await Party.findById(id);
-        if (!party) {
-            return res.status(404).json({ msg: 'Party not found' });
-        }
-        
-        let update = {};
-        updateLeaderAccountCNIC(leaderAccountCNIC, update);
-        let response;
-        if (memberID && action) {
-            if (action === 'Add') {
-                response = await addMember(party, memberID, token, update);
-            } else if (action === 'Remove') {
-                response = await removeMember(party, memberID, token, update);
-            } else {
-                return res.status(400).json({ msg: 'Invalid action' });
-            }
-        }
-
-        const updatedParty = await Party.findByIdAndUpdate(id, update, { runValidators:true, new: true });
-
-        res.status(200).json({ msg: 'Party updated successfully', party: updatedParty, account: response?.data });
-    } catch (error) {
-        res.status(500).json({ msg: error.message });
-    }
-};
-
-export{
-    getAllParties,
-    getParty,
-    createParty,
-    login,
-    updateApproval,
-    updateParty
-}

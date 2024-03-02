@@ -13,7 +13,7 @@ import {
     getRequestProof
 } from '../controllers/partyApproval.js'
 
-router.route('/').post( createRequest).get(authMiddleware, getAllRequests)
+router.route('/').post(upload.single('documents'), createRequest).get(authMiddleware, getAllRequests)
 router.route('/pending').get(authMiddleware, getPendingRequests)
 router.route('/id/:id')
     .patch(authMiddleware, updateRequest).get(authMiddleware, getParty)

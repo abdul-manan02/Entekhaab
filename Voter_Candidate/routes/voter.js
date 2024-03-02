@@ -6,7 +6,8 @@ import {
     getAllAccounts,
     createAccount,
     login,
-    getAccount,
+    getAccountById,
+    getAccountByCnic,
     getElections,
     changeSelectedAddress,
     changeSelectedSim 
@@ -16,7 +17,8 @@ router.route('/').get(getAllAccounts)
 router.route('/signup').post(createAccount)
 router.route('/login').post(login)
 
-router.route('/id/:id').get(authMiddleware, getAccount)
+router.route('/id/:id').get(authMiddleware, getAccountById)
+router.route('/cnic/:cnic').get(authMiddleware, getAccountByCnic)
 router.route('/id/:id/changeSim').patch(authMiddleware, changeSelectedSim)
 router.route('/id/:id/changeAddress').patch(authMiddleware, changeSelectedAddress)
 router.route('/id/:id/getElections').get(authMiddleware, getElections)

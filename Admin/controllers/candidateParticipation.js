@@ -1,10 +1,34 @@
-import CandiateParticipation from '../models/candidateParticipation.js'
+import CandidateParticipation from '../models/candidateParticipation.js'
 import axios from 'axios'
+import s3 from './s3Config.js'
 
 const createRequest = async (req, res) => {
     try {
-        const newRequest = await CandiateParticipation.create(req.body)
-        res.status(201).json({newRequest})
+        const request = { 
+            accountId: req.body.accountId,
+            constituencyId: req.body.constituencyId,
+            electionId: req.body.electionId,
+        }
+
+        if(req.body.partyId) request.partyId = req.body.partyId
+
+        if (req.file) {
+            const file = req.file;
+
+        
+            const params = {
+                Bucket: process.env.BUCKET_NAME,
+                Key: `${Date.now()}-${file.originalname}`,
+                Body: file.buffer
+            };
+
+            const uploaded = await s3.upload(params).promise();
+            request.proof = uploaded.Location;
+        }
+
+        const newRequest = new CandidateParticipation(request);
+        await newRequest.save();
+        res.status(201).json({ newRequest: newRequest });
     } catch (error) {
         res.status(500).json({msg: error})
     }
@@ -12,8 +36,45 @@ const createRequest = async (req, res) => {
 
 const getAllRequests = async (req, res) => {
     try {
-        const requests = await CandiateParticipation.find({})
-        res.status(200).json({requests})
+        const token = req.headers['authorization'].split(' ')[1];
+        const requests = await CandidateParticipation.find()
+        const results = await Promise.all(requests.map(async (approval) => {
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.accountId}`;
+            const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            return {
+                ...approval.toObject(),
+                voterCandidate: voterCandidateResponse.data
+            };
+        }));
+        res.status(200).json({results})
+    } catch (error) {
+        res.status(500).json({msg: error})
+    }
+}
+
+const getPendingRequests = async (req, res) => {
+    try {
+        const token = req.headers['authorization'].split(' ')[1];
+        const requests = await CandidateParticipation.find({status: "Pending"})
+        const results = await Promise.all(requests.map(async (approval) => {
+            const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${approval.accountId}`;
+            const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            return {
+                ...approval.toObject(),
+                voterCandidate: voterCandidateResponse.data
+            };
+        }));
+        res.status(200).json({results})
     } catch (error) {
         res.status(500).json({msg: error})
     }
@@ -21,7 +82,24 @@ const getAllRequests = async (req, res) => {
 
 const getRequest = async (req, res) => {
     try {
-        const request = await CandiateParticipation.findById(req.params.id)
+        const token = req.headers['authorization'].split(' ')[1];
+        const request = await CandidateParticipation.findById(req.params.id)
+        if(!request)
+            return res.status(404).json({msg: "No request found"})
+
+        const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${request.accountId}`;
+        const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        res.status(200).json({ 
+            approval: {
+                ...request.toObject(),
+                voterCandidate: voterCandidateResponse.data
+            }
+        });
         res.status(200).json({request})
     } catch (error) {
         res.status(500).json({msg: error})
@@ -30,8 +108,9 @@ const getRequest = async (req, res) => {
 
 const updateStatus = async (req, res) => {
     try {
-        const {status, token} = req.body
-        const request = await CandiateParticipation.findByIdAndUpdate(req.params.id, {status}, {runValidators:true, new: true})
+        const token = req.headers['authorization'].split(' ')[1];
+        const {status} = req.body
+        const request = await CandidateParticipation.findByIdAndUpdate(req.params.id, {status}, {runValidators:true, new: true})
         if(status === "Accepted"){
             const {accountId, partyId, constituencyId, electionId} = request
             const {data} = await axios.patch(`http://localhost:1002/api/v1/admin/election/id/${electionId}/addCandidate`, {candidateId: accountId, partyId, constituencyId},{
@@ -51,6 +130,7 @@ const updateStatus = async (req, res) => {
 export{
     createRequest,
     getAllRequests,
+    getPendingRequests,
     getRequest,
     updateStatus
 }

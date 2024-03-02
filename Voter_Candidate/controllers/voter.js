@@ -61,9 +61,32 @@ const login = async (req, res) => {
 }
 
 
-const getAccount = async (req, res) => {
+const getAccountById = async (req, res) => {
     try {
         const account = await Voter_Candidate.findById(req.params.id);
+        
+        if (!account) {
+            return res.status(404).json({ msg: "Account not found" });
+        }
+
+        const citizenDataEndpoint = `http://localhost:1000/api/v1/citizenData/id/${account.citizenDataId}`;
+        const citizenDataResponse = await axios.get(citizenDataEndpoint);
+        if (!citizenDataResponse.data) {
+            return res.status(404).json({ msg: "Citizen data not found" });
+        }
+
+        const citizenData = citizenDataResponse.data;
+        const { citizenDataId, ...accountData } = account.toObject();
+        accountData.CitizenData = citizenData;
+        res.json(accountData);
+    } catch (error) {
+        res.status(500).json({ msg: error.message });
+    }
+};
+
+const getAccountByCnic = async (req, res) => {
+    try {
+        const account = await Voter_Candidate.findOne({cnic: req.params.cnic});
         
         if (!account) {
             return res.status(404).json({ msg: "Account not found" });
@@ -147,7 +170,8 @@ export {
     getAllAccounts,
     createAccount,
     login,
-    getAccount,
+    getAccountById,
+    getAccountByCnic,
     getElections,
     changeSelectedAddress,
     changeSelectedSim

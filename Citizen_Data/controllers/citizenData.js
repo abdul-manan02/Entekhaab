@@ -1,16 +1,11 @@
 import Citizen from "../models/citizenData.js";
+import AWS from 'aws-sdk'
 
-// Create a new citizen
-// const createCitizen = async (req, res) => {
-//     const citizen = new Citizen(req.body);
-//     try {
-//         await citizen.save();
-//         res.status(201).json(citizen);
-//     } catch (error) {
-//         res.status(400).json({ message: error.message });
-//     }
-// };
-
+const s3 = new AWS.S3({
+    accessKeyId: process.env.BUCKET_ACCESSKEY,
+    secretAccessKey: process.env.BUCKET_SECRETACCESSKEY,
+    region: process.env.BUCKET_REGION
+});
 
 const createCitizen = async (req, res) => {
     try {
@@ -38,8 +33,19 @@ const createCitizen = async (req, res) => {
         };
     
         if (req.files) {
-            citizenData.images = req.files.map(file => ({ data: file.buffer }));
-          }
+            const images = await Promise.all(req.files.map(async (file) => {
+                const params = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: `${Date.now()}-${file.originalname}`,
+                    Body: file.buffer
+                };
+
+                const uploaded = await s3.upload(params).promise();
+                return { url: uploaded.Location };
+            }));
+
+            citizenData.images = images;
+        }
     
         const citizen = new Citizen(citizenData);
         await citizen.save();
@@ -54,7 +60,7 @@ const createCitizen = async (req, res) => {
 const getAllCitizens = async (req, res) => {
     try {
         //const citizens = await Citizen.find();
-        const citizens = await Citizen.find().select('-images');
+        const citizens = await Citizen.find();
         res.status(200).json({ citizens, length: citizens.length });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -65,7 +71,7 @@ const getCitizenByCnic = async (req, res) => {
     //console.log(req.params.cnic);
     try {
         //const citizen = await Citizen.findOne({ cnic: req.params.cnic });
-        const citizen = await Citizen.findOne({ cnic: req.params.cnic }).select('-images');;
+        const citizen = await Citizen.findOne({ cnic: req.params.cnic });
         if (citizen == null) {
             return res.status(404).json({ message: "Cannot find citizen" });
         }
@@ -80,7 +86,7 @@ const getCitizenImageByCnic = async (req, res) => {
     try {
         const { cnic, imageId } =  req.params;
         const citizen = await Citizen.findOne({ cnic });
-        
+
         if (!citizen) {
             return res.status(404).json({ message: 'Citizen not found' });
         }
@@ -91,13 +97,12 @@ const getCitizenImageByCnic = async (req, res) => {
         } else {
             image = citizen.images[0];
         }
-        
+
         if (!image) {
             return res.status(404).json({ message: 'Image not found' });
         }
-
-        res.set('Content-Type', "image/jpeg");
-        res.send(image.data);
+        
+        res.status(200).json({ url: image.url });
     } catch (error) {
         res.status(500).json({ message: 'An error occurred', error: error.message });
     }
@@ -106,7 +111,7 @@ const getCitizenImageByCnic = async (req, res) => {
 const getCitizenById = async (req, res) => {
     try {
         //const citizen = await Citizen.findById(req.params.id);
-        const citizen = await Citizen.findById(req.params.id).select('-images');
+        const citizen = await Citizen.findById(req.params.id);
         if (!citizen) {
             return res.status(404).json({ message: "Cannot find citizen" });
         }
@@ -137,8 +142,7 @@ const getCitizenImageById = async (req, res) => {
             return res.status(404).json({ message: 'Image not found' });
         }
 
-        res.set('Content-Type', "image/jpeg");
-        res.send(image.data);
+        res.status(200).json({ url: image.url });
     } catch (error) {
         res.status(500).json({ message: 'An error occurred', error: error.message });
     }

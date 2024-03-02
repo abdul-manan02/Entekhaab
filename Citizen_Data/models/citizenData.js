@@ -75,7 +75,7 @@ const citizenSchema = new mongoose.Schema({
         required: [true, 'Citizen must have at least one sim']
     },
     images: [{
-        data: { type: Buffer }
+        url: { type: String }
     }],
 })
 
