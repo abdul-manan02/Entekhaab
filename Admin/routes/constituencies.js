@@ -4,6 +4,7 @@ const router = express.Router()
 
 import{
     getAllConstituencies,
+    getConstituency,
     createConstituency,
     updateConstituency,
     deleteConstituency
@@ -12,6 +13,6 @@ import{
 router.route('/')
     .get(authMiddleware, getAllConstituencies).post(authMiddleware, createConstituency)
 router.route('/name/:name')
-    .patch(authMiddleware, updateConstituency).delete(authMiddleware, deleteConstituency)
+    .patch(authMiddleware, updateConstituency).delete(authMiddleware, deleteConstituency).get(authMiddleware, getConstituency)
 
 export default router

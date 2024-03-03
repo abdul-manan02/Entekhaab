@@ -13,6 +13,19 @@ const getAllConstituencies = async(req,res)=>{
     }
 }
 
+const getConstituency = async(req,res)=>{
+    try {
+        const {name} = req.params
+        const constituency = await Constituencies.findOne({name})
+        if(constituency)
+            return res.status(200).json(constituency)
+        else
+            return res.status(404).json({msg: `Constituency ${name} NOT FOUND`})
+    } catch (error) {
+        res.status(404).json(error)
+    }
+}
+
 const createConstituency = async(req,res)=>{
     try {
         const {name, position} = req.body
@@ -56,6 +69,7 @@ const deleteConstituency = async(req,res)=>{
 
 export{
     getAllConstituencies,
+    getConstituency,
     createConstituency,
     updateConstituency,
     deleteConstituency
