@@ -11,28 +11,31 @@ const citizenSchema = new mongoose.Schema({
         required: [true, 'Citizen must have a name']
     },
     dateOfBirth: {
-        type: Date,
+        //type: Date,
+        type: String,
         required: [true, 'Citizen must have a D.O.B']
     },
     gender: {
         type: String,
-        enum: {
-            values: ['Male', 'Female', 'Other'],
-            message: '${VALUE} is invalid'
-        }, 
+        // enum: {
+        //     values: ['Male', 'Female', 'Other'],
+        //     message: '${VALUE} is invalid'
+        // }, 
         required: [true, 'Citizen must have a gender']
     },
     maritalStatus: {
         type: String,
-        enum: {
-           values: ['Single', 'Married', 'Divorced', 'Widowed'],
-           message: '${VALUE} is invalid'
-        }, 
+        // enum: {
+        //    values: ['Single', 'Married', 'Divorced', 'Widowed'],
+        //    message: '${VALUE} is invalid'
+        // }, 
         required: [true, 'Citizen must have a marital status']
     },
     permanentAddress: {
-        house: Number,
-        street: Number,
+        // house: Number,
+        // street: Number,
+        house: String,
+        street: String,
         area: {
             type: String,
             required: [true, 'Area must be provdided']
@@ -44,15 +47,17 @@ const citizenSchema = new mongoose.Schema({
         province: {
             type: String,
             required: [true, 'Province must be provdided'],
-            enum:{
-                values: ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad Capital Territory'],
-                message: '${VALUE} is invalid'
-            }
+            // enum:{
+            //     values: ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad Capital Territory'],
+            //     message: '${VALUE} is invalid'
+            // }
         }
     },
     temporaryAddress: {
-        house: Number,
-        street: Number,
+        // house: Number,
+        // street: Number,
+        house: String,
+        street: String,
         area: {
             type: String,
             required: [true, 'Area must be provdided']
@@ -64,10 +69,10 @@ const citizenSchema = new mongoose.Schema({
         province: {
             type: String,
             required: [true, 'Province must be provdided'],
-            enum:{
-                values: ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad Capital Territory'],
-                message: '${VALUE} is invalid'
-            }
+            // enum:{
+            //     values: ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad Capital Territory'],
+            //     message: '${VALUE} is invalid'
+            // }
         }
     },
     sims:{

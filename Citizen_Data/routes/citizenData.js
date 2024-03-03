@@ -7,18 +7,20 @@ import {
     createCitizen,
     getAllCitizens,
     getCitizenByCnic,
-    updateCitizenByCnic,
     getCitizenById,
-    updateCitizenById,
     getCitizenImageById,
     getCitizenImageByCnic
+    // updateCitizenByCnic,
+    // updateCitizenById,
 } from '../controllers/citizenData.js'
 
 router.route('/').post(upload.array('images'), createCitizen)
 router.route('/all').get(getAllCitizens)
 
-router.route('/cnic/:cnic').get(getCitizenByCnic).patch(updateCitizenByCnic)
-router.route('/id/:id').get(getCitizenById).patch(updateCitizenById)
+router.route('/cnic/:cnic').get(getCitizenByCnic)
+//.patch(updateCitizenByCnic)
+router.route('/id/:id').get(getCitizenById)
+//.patch(updateCitizenById)
 
 
 router.route('/cnic/:cnic/image/:imageId').get(getCitizenImageByCnic);

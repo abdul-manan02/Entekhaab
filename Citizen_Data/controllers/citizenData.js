@@ -1,5 +1,6 @@
 import Citizen from "../models/citizenData.js";
 import AWS from 'aws-sdk'
+import CryptoJS from 'crypto-js'
 
 const s3 = new AWS.S3({
     accessKeyId: process.env.BUCKET_ACCESSKEY,
@@ -7,9 +8,82 @@ const s3 = new AWS.S3({
     region: process.env.BUCKET_REGION
 });
 
+
+const encryptData = (data) => {
+    const encryptedData = {};
+    for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+            const value = data[key];
+            if (key === 'cnic') {
+                encryptedData[key] = value;
+                continue;
+            }
+            if (Array.isArray(value)) {
+                encryptedData[key] = value.map(item => {
+                    if (typeof item === 'object' && item !== null) {
+                        if (key === 'images' && item.hasOwnProperty('url')) {
+                            return { url: CryptoJS.AES.encrypt(item.url.toString(), process.env.CRYPTOJS_KEY).toString() };
+                        } else {
+                            return encryptData(item);
+                        }
+                    } else {
+                        return CryptoJS.AES.encrypt(item.toString(), process.env.CRYPTOJS_KEY).toString();
+                    }
+                });
+            } else if (typeof value === 'object' && value !== null) {
+                encryptedData[key] = encryptData(value);
+            } else {
+                const encryptedValue = CryptoJS.AES.encrypt(value.toString(), process.env.CRYPTOJS_KEY).toString();
+                encryptedData[key] = encryptedValue;
+            }
+        }
+    }
+    return encryptedData;
+};
+
+const decryptData = (encryptedData, key) => {
+    const decryptedData = {};
+    for (const propertyKey in encryptedData) {
+        if (encryptedData.hasOwnProperty(propertyKey)) {
+            const value = encryptedData[propertyKey];
+            if (propertyKey === '_id' || propertyKey === '$oid' || propertyKey === '__v' || propertyKey === 'cnic') {
+                decryptedData[propertyKey] = value;
+                continue;
+            }
+            if (Array.isArray(value)) {
+                decryptedData[propertyKey] = value.map(item => {
+                    if (typeof item === 'object' && item !== null) {
+                        if (propertyKey === 'images' && item.hasOwnProperty('url')) {
+                            const decryptedUrl = CryptoJS.AES.decrypt(item.url, key).toString(CryptoJS.enc.Utf8);
+                            return { url: decryptedUrl };
+                        } else {
+                            return decryptData(item, key);
+                        }
+                    } else {
+                        const decryptedValue = CryptoJS.AES.decrypt(item, key).toString(CryptoJS.enc.Utf8);
+                        return decryptedValue;
+                    }
+                });
+            } else if (typeof value === 'object' && value !== null) {
+                decryptedData[propertyKey] = decryptData(value, key);
+            } else {
+                const decryptedValue = CryptoJS.AES.decrypt(value, key).toString(CryptoJS.enc.Utf8);
+                // Check if the propertyKey represents a date and convert it to a Date object
+                if (propertyKey.toLowerCase().includes('date')) {
+                    decryptedData[propertyKey] = new Date(decryptedValue);
+                } else {
+                    decryptedData[propertyKey] = decryptedValue;
+                }
+            }
+        }
+    }
+    return decryptedData;
+};
+
+
 const createCitizen = async (req, res) => {
     try {
-        const citizenData = {
+        let citizenData = {
           cnic: req.body.cnic,
           name: req.body.name,
           dateOfBirth: req.body.dateOfBirth,
@@ -46,10 +120,9 @@ const createCitizen = async (req, res) => {
 
             citizenData.images = images;
         }
-    
-        // encryption data
+        
+        citizenData = encryptData(citizenData);
 
-        // encrypted data
         const citizen = new Citizen(citizenData);
         await citizen.save();
     
@@ -59,26 +132,33 @@ const createCitizen = async (req, res) => {
     }
 };
 
-// Get all citizens
 const getAllCitizens = async (req, res) => {
     try {
-        //const citizens = await Citizen.find();
         const citizens = await Citizen.find();
-        res.status(200).json({ citizens, length: citizens.length });
+        if (citizens.length === 0) {
+            return res.status(404).json({ message: "No citizens found" });
+        }
+
+        // Decrypt each citizen's data
+        const decryptedCitizens = citizens.map(citizen => {
+            const decryptedCitizen = decryptData(citizen.toObject(), process.env.CRYPTOJS_KEY);
+            return decryptedCitizen;
+        });
+
+        res.status(200).json(decryptedCitizens);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
 const getCitizenByCnic = async (req, res) => {
-    //console.log(req.params.cnic);
     try {
-        //const citizen = await Citizen.findOne({ cnic: req.params.cnic });
         const citizen = await Citizen.findOne({ cnic: req.params.cnic });
         if (citizen == null) {
             return res.status(404).json({ message: "Cannot find citizen" });
         }
-        res.status(200).json(citizen);
+        const decryptedCitizen = decryptData(citizen.toObject(), process.env.CRYPTOJS_KEY);
+        res.status(200).json(decryptedCitizen);
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message });
@@ -87,7 +167,7 @@ const getCitizenByCnic = async (req, res) => {
 
 const getCitizenImageByCnic = async (req, res) => {
     try {
-        const { cnic, imageId } =  req.params;
+        const { cnic, imageId } = req.params;
         const citizen = await Citizen.findOne({ cnic });
 
         if (!citizen) {
@@ -105,7 +185,9 @@ const getCitizenImageByCnic = async (req, res) => {
             return res.status(404).json({ message: 'Image not found' });
         }
         
-        res.status(200).json({ url: image.url });
+        // Decrypt the image URL
+        const decryptedUrl = CryptoJS.AES.decrypt(image.url, process.env.CRYPTOJS_KEY).toString(CryptoJS.enc.Utf8);
+        res.status(200).json({ url: decryptedUrl });
     } catch (error) {
         res.status(500).json({ message: 'An error occurred', error: error.message });
     }
@@ -113,12 +195,12 @@ const getCitizenImageByCnic = async (req, res) => {
 
 const getCitizenById = async (req, res) => {
     try {
-        //const citizen = await Citizen.findById(req.params.id);
         const citizen = await Citizen.findById(req.params.id);
         if (!citizen) {
             return res.status(404).json({ message: "Cannot find citizen" });
         }
-        res.status(200).json(citizen);
+        const decryptedCitizen = decryptData(citizen.toObject(), process.env.CRYPTOJS_KEY);
+        res.status(200).json(decryptedCitizen);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: error.message });
@@ -145,7 +227,9 @@ const getCitizenImageById = async (req, res) => {
             return res.status(404).json({ message: 'Image not found' });
         }
 
-        res.status(200).json({ url: image.url });
+        // Decrypt the image URL
+        const decryptedUrl = CryptoJS.AES.decrypt(image.url, process.env.CRYPTOJS_KEY).toString(CryptoJS.enc.Utf8);
+        res.status(200).json({ url: decryptedUrl });
     } catch (error) {
         res.status(500).json({ message: 'An error occurred', error: error.message });
     }
@@ -159,7 +243,8 @@ const updateCitizenByCnic = async (req, res) => {
             { new: true }
         );
         if (citizen) {
-            res.status(200).json(citizen);
+            const decryptedCitizen = decryptData(citizen.toObject(), process.env.CRYPTOJS_KEY);
+            res.status(200).json(decryptedCitizen);
         } else {
             res.status(404).json({ message: "Citizen not found" });
         }
@@ -174,7 +259,8 @@ const updateCitizenById = async (req, res) => {
             new: true,
         });
         if (citizen) {
-            res.status(200).json(citizen);
+            const decryptedCitizen = decryptData(citizen.toObject(), process.env.CRYPTOJS_KEY);
+            res.status(200).json(decryptedCitizen);
         } else {
             res.status(404).json({ message: "Citizen not found" });
         }
@@ -183,13 +269,46 @@ const updateCitizenById = async (req, res) => {
     }
 };
 
+
+// const updateCitizenByCnic = async (req, res) => {
+//     try {
+//         const citizen = await Citizen.findOneAndUpdate(
+//             { cnic: req.params.cnic }, // Finding by CNIC
+//             req.body,
+//             { new: true }
+//         );
+//         if (citizen) {
+//             res.status(200).json(citizen);
+//         } else {
+//             res.status(404).json({ message: "Citizen not found" });
+//         }
+//     } catch (error) {
+//         res.status(400).json({ message: error.message });
+//     }
+// };
+
+// const updateCitizenById = async (req, res) => {
+//     try {
+//         const citizen = await Citizen.findByIdAndUpdate(req.params.id, req.body, {
+//             new: true,
+//         });
+//         if (citizen) {
+//             res.status(200).json(citizen);
+//         } else {
+//             res.status(404).json({ message: "Citizen not found" });
+//         }
+//     } catch (error) {
+//         res.status(400).json({ message: error.message });
+//     }
+// };
+
 export {
     createCitizen,
     getAllCitizens,
     getCitizenByCnic,
     getCitizenById,
-    updateCitizenByCnic,
-    updateCitizenById,
     getCitizenImageById,
     getCitizenImageByCnic
+    // updateCitizenByCnic,
+    // updateCitizenById,
 };
