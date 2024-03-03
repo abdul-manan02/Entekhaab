@@ -24,7 +24,7 @@ const createRequest = async(req,res) => {
         
         const newRequest = new ConstituencyChangeRequest(request);
         await newRequest.save();
-        res.status(201).json({ newRequest: newRequest });
+        res.status(200).json({ newRequest: newRequest });
     } catch (error) {
         res.status(409).json({ message: error.message });
     }

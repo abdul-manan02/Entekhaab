@@ -47,6 +47,9 @@ const createCitizen = async (req, res) => {
             citizenData.images = images;
         }
     
+        // encryption data
+
+        // encrypted data
         const citizen = new Citizen(citizenData);
         await citizen.save();
     

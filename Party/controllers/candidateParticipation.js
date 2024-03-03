@@ -26,14 +26,7 @@ const createRequest = async (req, res) => {
 
         const newRequest = new CandiateParticipation(request);
         await newRequest.save();
-        res.status(201).json({ newRequest: newRequest });
-    } catch (error) {
-        res.status(500).json({msg: error})
-    }
-
-    try {
-        const newRequest = await CandiateParticipation.create(req.body)
-        res.status(201).json({newRequest})
+        res.status(200).json({ newRequest: newRequest });
     } catch (error) {
         res.status(500).json({msg: error})
     }

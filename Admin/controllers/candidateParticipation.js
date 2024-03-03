@@ -13,7 +13,6 @@ const createRequestForIndepenedent = async (req, res) => {
         if (req.file) {
             const file = req.file;
 
-        
             const params = {
                 Bucket: process.env.BUCKET_NAME,
                 Key: `${Date.now()}-${file.originalname}`,
@@ -26,7 +25,7 @@ const createRequestForIndepenedent = async (req, res) => {
 
         const newRequest = new CandidateParticipation(request);
         await newRequest.save();
-        res.status(201).json({ newRequest: newRequest });
+        res.status(200).json({ newRequest: newRequest });
     } catch (error) {
         res.status(500).json({msg: error})
     }
@@ -36,7 +35,7 @@ const createRequestForPartyAffiliated = async (req, res) => {
     try {
         const {accountId, partyId, constituencyId, electionId, proof} = req.body
         const newRequest = await CandidateParticipation.create({accountId, partyId, constituencyId, electionId, proof})
-        res.status(201).json({newRequest})
+        res.status(200).json({newRequest})
     } catch (error) {
         res.status(500).json({msg: error})
     }

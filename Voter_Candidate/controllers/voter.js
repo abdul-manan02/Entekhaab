@@ -6,7 +6,7 @@ import axios from 'axios';
 const getAllAccounts = async (req, res) => {
     try {
         const accountList = await Voter_Candidate.find()
-        res.status(201).json({ accountList })
+        res.status(200).json({ accountList })
     } catch (error) {
         res.status(404).json({ msg: error })
     }
@@ -35,7 +35,7 @@ const createAccount = async (req, res) => {
             selectedSim
         }
         const newUser = await Voter_Candidate.create(newAccount)
-        res.status(201).json({ newUser })
+        res.status(200).json({ newUser })
     } catch (error) {
         res.status(400).json({ msg: error })
     }
@@ -54,7 +54,7 @@ const login = async (req, res) => {
 
         const token = jwt.sign({ userId: account._id }, process.env.JWT_KEY, { expiresIn: '24h' })
 
-        res.status(201).json({ account, token})
+        res.status(200).json({ account, token})
     } catch (error) {
         res.status(500).json({ msg: error })
     }
@@ -78,7 +78,7 @@ const getAccountById = async (req, res) => {
         const citizenData = citizenDataResponse.data;
         const { citizenDataId, ...accountData } = account.toObject();
         accountData.CitizenData = citizenData;
-        res.json(accountData);
+        res.status(200).json(accountData);
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }
@@ -101,7 +101,7 @@ const getAccountByCnic = async (req, res) => {
         const citizenData = citizenDataResponse.data;
         const { citizenDataId, ...accountData } = account.toObject();
         accountData.CitizenData = citizenData;
-        res.json(accountData);
+        res.status(200).json(accountData);
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }
@@ -125,9 +125,9 @@ const getElections = async (req, res) => {
         );
 
         if (isVoterInElection) {
-            res.json(elections);
+            res.status(200).json(elections);
         } else {
-            res.json({ msg: "Voter is not in the election" });
+            res.status(200).json({ msg: "Voter is not in the election" });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -143,7 +143,7 @@ const changeSelectedAddress = async (req, res) => {
         );
         
         if (account)
-            res.status(201).json({ account })
+            res.status(200).json({ account })
         else
             res.status(402).json({ msg: "Account not found" })
     } catch (error) {
@@ -158,7 +158,7 @@ const changeSelectedSim = async (req, res) => {
             { new: true, runValidators: true }
         );
         if (account)
-            res.status(201).json({ account })
+            res.status(200).json({ account })
         else
             res.status(402).json({ msg: "Account not found" })
     } catch (error) {

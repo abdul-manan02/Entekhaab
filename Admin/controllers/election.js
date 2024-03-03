@@ -61,7 +61,7 @@ const createElection = async (req, res) => {
         }
         
         const election = await Election.create(electionData)
-        res.status(201).json({election})
+        res.status(200).json({election})
     } catch (error) {
         
     }
@@ -127,7 +127,7 @@ const startElection = async (req, res) => {
         election.isStarted = true;
         await election.save();
 
-        res.json({ message: 'Election started successfully' });
+        res.status(200).json({ message: 'Election started successfully' });
     } catch (error) {
         res.status(500).json({ message: 'An error occurred', error: error.message });
     }
@@ -145,7 +145,7 @@ const addCandidate = async (req, res) => {
         election.candidates.push({ candidateId, partyId, constituencyId, votesReceived:0 });
         await election.save();
 
-        res.status(201).json({ message: 'Candidate added successfully' });
+        res.status(200).json({ message: 'Candidate added successfully' });
     } catch (error) {
         res.status(500).json({ message: 'An error occurred', error: error.message });
     }
@@ -162,7 +162,7 @@ const finishElection = async (req, res) => {
         election.isFinished = true;
         await election.save();
         
-        res.json({ message: 'Election finished successfully' });
+        res.status(200).json({ message: 'Election finished successfully' });
     } catch (error) {
         res.status(500).json({ message: 'An error occurred', error: error.message });
     }

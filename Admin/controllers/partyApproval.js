@@ -109,7 +109,7 @@ const createRequest = async (req, res) => {
         });
         
         await approval.save();
-        res.status(201).json(approval);
+        res.status(200).json(approval);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

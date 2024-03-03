@@ -24,7 +24,7 @@ const createMemberApproval = async (req, res) => {
         
         const newRequest = new MemberApproval(request);
         await newRequest.save();
-        res.status(201).json({ newRequest: newRequest });
+        res.status(200).json({ newRequest: newRequest });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

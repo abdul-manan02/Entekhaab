@@ -48,7 +48,7 @@ const createRequest = async(req,res) => {
         
         const newRequest = new CandidateApproval(request);
         await newRequest.save();
-        res.status(201).json({ newRequest: newRequest });
+        res.status(200).json({ newRequest: newRequest });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -137,7 +137,7 @@ const updateRequest = async (req, res) => {
             const updatedRequest = await CandidateApproval.findByIdAndUpdate({_id:id}, { status }, { new: true, runValidators: true });
 
             if(status === "Rejected")
-                return res.json({ msg: "Request Rejected" });
+                return res.status(200).json({ msg: "Request Rejected" });
 
             if (!updatedRequest) {
                 return res.status(404).json({ msg: "Request not found" });

@@ -81,7 +81,7 @@ const createParty = async (req, res) => {
         }
         
         const response = await axios.post(`http://localhost:1002/api/v1/admin/partyApproval`, partyApproval)
-        res.json({party: savedParty, approval: response.data})
+        res.status(200).json({party: savedParty, approval: response.data})
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }
