@@ -7,6 +7,7 @@ const getAllRequests = async(req,res) => {
         const token = req.headers['authorization'].split(' ')[1];
 
         const requests = await partyApproval.find();
+        console.log('reqs', requests)
         const results = await Promise.all(requests.map(async (approval) => {
             const voterCandidateEndpoint = `http://localhost:1001/api/v1/voter/cnic/${approval.leaderCNIC}`;
             const voterCandidateResponse = await axios.get(voterCandidateEndpoint, {

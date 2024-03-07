@@ -5,7 +5,8 @@ import axios from 'axios'
 
 const createElection = async (req, res) => {
     try {
-        const {electionType, token} = req.body
+        const {electionType, token, electionTime} = req.body
+        console.log(electionType, token)
         let voter_bank = []
         let constituencies = []
         // get all voters
@@ -15,6 +16,7 @@ const createElection = async (req, res) => {
         if(electionType == "By Elections")
         {
             const {constituency} = req.body;
+            console.log(constituency)
             constituencies.push(constituency._id)
             const votingAddresses = voterResponse.data.accountList.map(account => account.votingAddress)
             const citizenDataIDs = voterResponse.data.accountList.map(account => account.citizenDataId)
@@ -40,12 +42,14 @@ const createElection = async (req, res) => {
         }
         else if(electionType == "General Elections")
         {
+            console.log('here')
             const constituencyEndpoint = `http://localhost:1002/api/v1/admin/constituency`
             const constituencyResponse = await axios.get(constituencyEndpoint,{
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
+            console.log('constituency response')
             constituencies = constituencyResponse.data.constituencies.map(constituency => constituency._id);   
 
             voter_bank = voterResponse.data.accountList.map(account => ({
@@ -57,7 +61,8 @@ const createElection = async (req, res) => {
         const electionData = {
             electionType,
             constituencies,
-            voter_bank
+            voter_bank,
+            electionTime
         }
         
         const election = await Election.create(electionData)

@@ -13,6 +13,7 @@ import{
     updateParty
 } from '../controllers/party.js'
 
+router.route('/').get(getAllParties)
 router.route('/login').post(login)
 router.route('/signup').post(upload.single('documents'), createParty)
 
@@ -24,4 +25,3 @@ router.route('/name/:name/approval')
 export default router
 
 
-//router.route('/').get(getAllParties)

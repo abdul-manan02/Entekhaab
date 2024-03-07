@@ -15,7 +15,7 @@ import{
 } from '../controllers/memberApproval.js'
 
 router.route('/')
-    .post(upload.single('documents'), authMiddleware, createMemberApproval).get(authMiddleware, getAllApprovals);
+    .post(upload.single('documents'), createMemberApproval).get(authMiddleware, getAllApprovals);
 
 router.route('/id/:id')
     .get(authMiddleware, getApproval).patch(authMiddleware, updateApproval);

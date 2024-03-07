@@ -9,6 +9,38 @@ const s3 = new AWS.S3({
 });
 
 
+// const encryptData = (data) => {
+//     const encryptedData = {};
+//     for (const key in data) {
+//         if (data.hasOwnProperty(key)) {
+//             const value = data[key];
+//             if (key === 'cnic') {
+//                 encryptedData[key] = value;
+//                 continue;
+//             }
+//             if (Array.isArray(value)) {
+//                 encryptedData[key] = value.map(item => {
+//                     if (typeof item === 'object' && item !== null) {
+//                         if (key === 'images' && item.hasOwnProperty('url')) {
+//                             return { url: CryptoJS.AES.encrypt(item.url.toString(), process.env.CRYPTOJS_KEY).toString() };
+//                         } else {
+//                             return encryptData(item);
+//                         }
+//                     } else {
+//                         return CryptoJS.AES.encrypt(item.toString(), process.env.CRYPTOJS_KEY).toString();
+//                     }
+//                 });
+//             } else if (typeof value === 'object' && value !== null) {
+//                 encryptedData[key] = encryptData(value);
+//             } else {
+//                 const encryptedValue = CryptoJS.AES.encrypt(value.toString(), process.env.CRYPTOJS_KEY).toString();
+//                 encryptedData[key] = encryptedValue;
+//             }
+//         }
+//     }
+//     return encryptedData;
+// };
+
 const encryptData = (data) => {
     const encryptedData = {};
     for (const key in data) {
@@ -22,18 +54,32 @@ const encryptData = (data) => {
                 encryptedData[key] = value.map(item => {
                     if (typeof item === 'object' && item !== null) {
                         if (key === 'images' && item.hasOwnProperty('url')) {
-                            return { url: CryptoJS.AES.encrypt(item.url.toString(), process.env.CRYPTOJS_KEY).toString() };
+                            const encryptedUrl = CryptoJS.AES.encrypt(item.url.toString(), process.env.CRYPTOJS_KEY).toString();
+                            const decryptedUrl = CryptoJS.AES.decrypt(encryptedUrl, process.env.CRYPTOJS_KEY).toString(CryptoJS.enc.Utf8);
+                            console.log("Decrypted URL:", decryptedUrl);
+                            return { url: encryptedUrl };
                         } else {
-                            return encryptData(item);
+                            const encryptedItem = encryptData(item);
+                            const decryptedItem = decryptData(encryptedItem, process.env.CRYPTOJS_KEY);
+                            console.log("Decrypted Item:", decryptedItem);
+                            return encryptedItem;
                         }
                     } else {
-                        return CryptoJS.AES.encrypt(item.toString(), process.env.CRYPTOJS_KEY).toString();
+                        const encryptedValue = CryptoJS.AES.encrypt(item.toString(), process.env.CRYPTOJS_KEY).toString();
+                        const decryptedValue = CryptoJS.AES.decrypt(encryptedValue, process.env.CRYPTOJS_KEY).toString(CryptoJS.enc.Utf8);
+                        console.log("Decrypted Value:", decryptedValue);
+                        return encryptedValue;
                     }
                 });
             } else if (typeof value === 'object' && value !== null) {
-                encryptedData[key] = encryptData(value);
+                const encryptedValue = encryptData(value);
+                const decryptedValue = decryptData(encryptedValue, process.env.CRYPTOJS_KEY);
+                console.log("Decrypted Value:", decryptedValue);
+                encryptedData[key] = encryptedValue;
             } else {
                 const encryptedValue = CryptoJS.AES.encrypt(value.toString(), process.env.CRYPTOJS_KEY).toString();
+                const decryptedValue = CryptoJS.AES.decrypt(encryptedValue, process.env.CRYPTOJS_KEY).toString(CryptoJS.enc.Utf8);
+                console.log("Decrypted Value:", decryptedValue);
                 encryptedData[key] = encryptedValue;
             }
         }
@@ -41,8 +87,11 @@ const encryptData = (data) => {
     return encryptedData;
 };
 
+
 const decryptData = (encryptedData, key) => {
     const decryptedData = {};
+    console.log('data encrypted', encryptedData)
+    console.log('key', key)
     for (const propertyKey in encryptedData) {
         if (encryptedData.hasOwnProperty(propertyKey)) {
             const value = encryptedData[propertyKey];
@@ -153,11 +202,14 @@ const getAllCitizens = async (req, res) => {
 
 const getCitizenByCnic = async (req, res) => {
     try {
+        
         const citizen = await Citizen.findOne({ cnic: req.params.cnic });
         if (citizen == null) {
             return res.status(404).json({ message: "Cannot find citizen" });
         }
+       
         const decryptedCitizen = decryptData(citizen.toObject(), process.env.CRYPTOJS_KEY);
+       
         res.status(200).json(decryptedCitizen);
     } catch (error) {
         console.log(error);
@@ -195,11 +247,14 @@ const getCitizenImageByCnic = async (req, res) => {
 
 const getCitizenById = async (req, res) => {
     try {
+        console.log('id', req.params.id)
         const citizen = await Citizen.findById(req.params.id);
+        console.log("citizen", citizen)
         if (!citizen) {
             return res.status(404).json({ message: "Cannot find citizen" });
         }
         const decryptedCitizen = decryptData(citizen.toObject(), process.env.CRYPTOJS_KEY);
+        console.log('decrypted citizen', decryptedCitizen)
         res.status(200).json(decryptedCitizen);
     } catch (error) {
         console.error(error);

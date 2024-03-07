@@ -23,8 +23,10 @@ const getAllAccounts = async (req, res) => {
     A voter record is created.
 */
 const createAccount = async (req, res) => {
+    console.log('here')
     try {
         const { cnic, password, citizenDataId, selectedSim, votingAddress } = req.body
+        console.log('cnic', cnic)
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -87,10 +89,14 @@ const getAccountById = async (req, res) => {
 const getAccountByCnic = async (req, res) => {
     try {
         const account = await Voter_Candidate.findOne({cnic: req.params.cnic});
+
+        console.log('here')
         
         if (!account) {
             return res.status(404).json({ msg: "Account not found" });
         }
+
+        console.log('accc', account)
 
         const citizenDataEndpoint = `http://localhost:1000/api/v1/citizenData/id/${account.citizenDataId}`;
         const citizenDataResponse = await axios.get(citizenDataEndpoint);
