@@ -4,6 +4,7 @@ import s3 from './s3Config.js';
 
 const createMemberApproval = async (req, res) => {
     try {
+        console.log(req.body)
         const request = { 
             partyId: req.body.partyId,
             memberId: req.body.memberId

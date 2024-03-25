@@ -14,7 +14,7 @@ import{
     updateStatus
 } from '../controllers/candidateParticipation.js'
 
-router.route('/').post(upload.single('documents'), authMiddleware, createRequest)
+router.route('/').post(upload.single('documents'), createRequest)
 
 router.route('/partyId/:partyId').get(authMiddleware, getAllRequestsForParty)
 router.route('/partyId/:partyId/constituency').get(authMiddleware, getAllRequestsForPartyForConstituency)

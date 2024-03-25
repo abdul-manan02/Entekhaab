@@ -14,10 +14,10 @@ import{
 } from '../controllers/candidateParticipation.js'
 
 router.route('/independentCandidate')
-    .post(upload.single('documents'), authMiddleware, createRequestForIndepenedent)
+    .post(upload.single('documents'), createRequestForIndepenedent)
 
 router.route('/partyAffiliatedCandidate')
-    .post(authMiddleware, createRequestForPartyAffiliated)
+    .post( createRequestForPartyAffiliated)
 
 router.route('/').get(authMiddleware, getAllRequests)
 router.route('/pending').get(authMiddleware, getPendingRequests)

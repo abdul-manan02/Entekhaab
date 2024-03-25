@@ -16,7 +16,7 @@ import {
 router.route('/').post(upload.single('documents'), createRequest).get(authMiddleware, getAllRequests)
 router.route('/pending').get(authMiddleware, getPendingRequests)
 router.route('/id/:id')
-    .patch(authMiddleware, updateRequest).get(authMiddleware, getParty)
+    .put(authMiddleware, updateRequest).get(authMiddleware, getParty)
 router.route('/id/:id/proof').get(authMiddleware, getRequestProof)
 
 export default router

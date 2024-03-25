@@ -10,7 +10,8 @@ import {
     getAccountByCnic,
     getElections,
     changeSelectedAddress,
-    changeSelectedSim 
+    changeSelectedSim, 
+    getElectionsCreated
 } from '../controllers/voter.js'
 
 router.route('/').get(getAllAccounts)
@@ -22,6 +23,7 @@ router.route('/cnic/:cnic').get(authMiddleware, getAccountByCnic)
 router.route('/id/:id/changeSim').patch(authMiddleware, changeSelectedSim)
 router.route('/id/:id/changeAddress').patch(authMiddleware, changeSelectedAddress)
 router.route('/id/:id/getElections').get(authMiddleware, getElections)
+router.route('/id/:id/getElections/created').get(authMiddleware, getElectionsCreated)
 
 
 export default router

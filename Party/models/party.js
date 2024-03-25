@@ -25,6 +25,10 @@ const partySchema = new mongoose.Schema({
     approved:{
         type: Boolean,
         default: false
+    },
+    logo: {
+        type: String,
+        required: true
     }
 })
 

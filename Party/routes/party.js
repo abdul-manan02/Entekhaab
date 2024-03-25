@@ -10,18 +10,19 @@ import{
     createParty,
     login,
     updateApproval,
-    updateParty
+    updateParty,
+    getAllMembers
 } from '../controllers/party.js'
 
 router.route('/login').post(login)
-router.route('/signup').post(upload.single('documents'), createParty)
+router.route('/signup').post(upload.array('documents'), createParty)
 
 router.route('/id/:id')
     .patch(authMiddleware, updateParty).get(authMiddleware, getParty)
 router.route('/name/:name/approval')
     .patch(authMiddleware, updateApproval)
-
+router.route('/').get(getAllParties)
+router.route('/members/:id').get(getAllMembers)
 export default router
 
 
-//router.route('/').get(getAllParties)

@@ -34,6 +34,8 @@ const createAccount = async (req, res) => {
             citizenDataId,
             selectedSim
         }
+
+        console.log('new', newAccount)
         const newUser = await Voter_Candidate.create(newAccount)
         res.status(200).json({ newUser })
     } catch (error) {
@@ -119,7 +121,31 @@ const getElections = async (req, res) => {
             }
         });
         const elections = electionResponse.data;
-        console.log(elections)
+        const isVoterInElection = elections.some(election => 
+            election.voter_bank.some(voter => voter.voterId === id)
+        );
+
+        if (isVoterInElection) {
+            res.status(200).json(elections);
+        } else {
+            res.status(200).json({ msg: "Voter is not in the election" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const getElectionsCreated = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const {token} = req.body;
+        const electionEndpoint = `http://localhost:1002/api/v1/admin/election/created`;
+        const electionResponse = await axios.get(electionEndpoint,{
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        const elections = electionResponse.data;
         const isVoterInElection = elections.some(election => 
             election.voter_bank.some(voter => voter.voterId === id)
         );
@@ -174,5 +200,6 @@ export {
     getAccountByCnic,
     getElections,
     changeSelectedAddress,
-    changeSelectedSim
+    changeSelectedSim,
+    getElectionsCreated
 }
