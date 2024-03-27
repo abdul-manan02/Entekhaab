@@ -18,7 +18,7 @@ router.route('/login').post(login)
 router.route('/signup').post(upload.array('documents'), createParty)
 
 router.route('/id/:id')
-    .patch(authMiddleware, updateParty).get(authMiddleware, getParty)
+    .patch(authMiddleware, updateParty).get( getParty)
 router.route('/name/:name/approval')
     .patch(authMiddleware, updateApproval)
 router.route('/').get(getAllParties)

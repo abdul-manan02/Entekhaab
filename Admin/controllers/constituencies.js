@@ -1,5 +1,6 @@
 import Constituencies from '../models/constituencies.js'
 import axios from 'axios'
+import { ObjectId } from 'mongoose'
 
 const getAllConstituencies = async(req,res)=>{
     try {
@@ -17,6 +18,19 @@ const getConstituency = async(req,res)=>{
     try {
         const {name} = req.params
         const constituency = await Constituencies.findOne({name})
+        if(constituency)
+            return res.status(200).json(constituency)
+        else
+            return res.status(404).json({msg: `Constituency ${name} NOT FOUND`})
+    } catch (error) {
+        res.status(404).json(error)
+    }
+}
+
+const getConstituencyById= async(req,res)=>{
+    try {
+        const {id} = req.params
+        const constituency = await Constituencies.findById(id)
         if(constituency)
             return res.status(200).json(constituency)
         else
@@ -72,5 +86,6 @@ export{
     getConstituency,
     createConstituency,
     updateConstituency,
-    deleteConstituency
+    deleteConstituency,
+    getConstituencyById
 }

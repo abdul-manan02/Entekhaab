@@ -22,6 +22,6 @@ router.route('/partyAffiliatedCandidate')
 router.route('/').get(authMiddleware, getAllRequests)
 router.route('/pending').get(authMiddleware, getPendingRequests)
 router.route('/id/:id')
-    .get(authMiddleware, getRequest).patch(authMiddleware, updateStatus)
+    .get(authMiddleware, getRequest).put(authMiddleware, updateStatus)
 
 export default router

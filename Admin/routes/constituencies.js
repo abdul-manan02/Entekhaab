@@ -7,11 +7,14 @@ import{
     getConstituency,
     createConstituency,
     updateConstituency,
-    deleteConstituency
+    deleteConstituency,
+    getConstituencyById
 } from '../controllers/constituencies.js'
 
 router.route('/')
     .get(authMiddleware, getAllConstituencies).post(authMiddleware, createConstituency)
+router.route('/id/:id')
+    .get( getConstituencyById)
 router.route('/name/:name')
     .patch(authMiddleware, updateConstituency).delete(authMiddleware, deleteConstituency).get(authMiddleware, getConstituency)
 

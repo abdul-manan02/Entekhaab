@@ -32,7 +32,8 @@ const createAccount = async (req, res) => {
             cnic,
             password: hashedPassword,
             citizenDataId,
-            selectedSim
+            selectedSim,
+            votingAddress
         }
 
         console.log('new', newAccount)
@@ -137,16 +138,87 @@ const getElections = async (req, res) => {
 
 const getElectionsCreated = async (req, res) => {
     try {
-        const {id} = req.params;
-        const {token} = req.body;
+        const { id } = req.params;
+        const { token } = req.body;
         const electionEndpoint = `http://localhost:1002/api/v1/admin/election/created`;
-        const electionResponse = await axios.get(electionEndpoint,{
+        const electionResponse = await axios.get(electionEndpoint, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         });
         const elections = electionResponse.data;
-        const isVoterInElection = elections.some(election => 
+
+        // Fetching constituency details for each election
+        for (let i = 0; i < elections.length; i++) {
+            const constituencies = [];
+            for (let j = 0; j < elections[i].constituencies.length; j++) {
+                const constituencyId = elections[i].constituencies[j];
+                const constituencyEndpoint = `http://localhost:1002/api/v1/admin/constituency/id/${constituencyId}`;
+                const constituencyResponse = await axios.get(constituencyEndpoint);
+                constituencies.push(constituencyResponse.data);
+            }
+            elections[i].constituencies = constituencies;
+        }
+
+        // const isVoterInElection = elections.some(election =>
+        //     election.voter_bank.some(voter => voter.voterId === id)
+        // );
+
+        res.status(200).json(elections);
+
+        // if (isVoterInElection) {
+        //     res.status(200).json(elections);
+        // } else {
+        //     res.status(200).json({ msg: "Voter is not in the election" });
+        // }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+
+const getElectionsStarted = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { token } = req.body;
+        const electionEndpoint = `http://localhost:1002/api/v1/admin/election/started`;
+        const electionResponse = await axios.get(electionEndpoint, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        let elections = electionResponse.data;
+
+        // Fetching constituency details for each election
+        for (let i = 0; i < elections.length; i++) {
+            const constituencies = [];
+            for (let j = 0; j < elections[i].constituencies.length; j++) {
+                const constituencyId = elections[i].constituencies[j];
+                const constituencyEndpoint = `http://localhost:1002/api/v1/admin/constituency/id/${constituencyId}`;
+                const constituencyResponse = await axios.get(constituencyEndpoint);
+                constituencies.push(constituencyResponse.data);
+            }
+            elections[i].constituencies = constituencies;
+        }
+
+        // Fetching candidate and party details for each candidate
+        for (let i = 0; i < elections.length; i++) {
+            for (let j = 0; j < elections[i].candidates.length; j++) {
+                const candidateId = elections[i].candidates[j].candidateId;
+                const partyId = elections[i].candidates[j].partyId;
+
+                const candidateEndpoint = `http://localhost:1001/api/v1/voter/id/${candidateId}`;
+                const candidateResponse = await axios.get(candidateEndpoint);
+                elections[i].candidates[j].candidateDetails = candidateResponse.data;
+
+                const partyEndpoint = `http://localhost:1003/api/v1/party/id/${partyId}`;
+                const partyResponse = await axios.get(partyEndpoint);
+                elections[i].candidates[j].partyDetails = partyResponse.data;
+            }
+        }
+
+        const isVoterInElection = elections.some(election =>
             election.voter_bank.some(voter => voter.voterId === id)
         );
 
@@ -201,5 +273,6 @@ export {
     getElections,
     changeSelectedAddress,
     changeSelectedSim,
-    getElectionsCreated
+    getElectionsCreated,
+    getElectionsStarted
 }

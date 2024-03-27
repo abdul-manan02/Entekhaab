@@ -116,23 +116,25 @@ const getRequest = async (req, res) => {
 const updateStatus = async (req, res) => {
     try {
         const token = req.headers['authorization'].split(' ')[1];
-        const {status} = req.body
-        const request = await CandidateParticipation.findByIdAndUpdate(req.params.id, {status}, {runValidators:true, new: true})
-        if(status === "Accepted"){
-            const {accountId, partyId, constituencyId, electionId} = request
-            const {data} = await axios.patch(`http://localhost:1002/api/v1/admin/election/id/${electionId}/addCandidate`, {candidateId: accountId, partyId, constituencyId},{
+        const { status } = req.body;
+        const request = await CandidateParticipation.findByIdAndUpdate(req.params.id, { status }, { runValidators: true, new: true });
+
+        if (status === "Accepted") {
+            const { accountId, partyId, constituencyId, electionId } = request;
+            const { data } = await axios.patch(`http://localhost:1002/api/v1/admin/election/id/${electionId}/addCandidate`, { candidateId: accountId, partyId, constituencyId }, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
-            res.status(200).json({data})
+            res.status(200).json({ data });
+        } else {
+            res.status(200).json({ request });
         }
-        
-        res.status(200).json({request})
     } catch (error) {
-        res.status(500).json({msg: error})
+        res.status(500).json({ msg: error.message });
     }
-}
+};
+
 
 export{
     createRequestForIndepenedent,
