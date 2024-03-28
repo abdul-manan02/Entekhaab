@@ -15,6 +15,12 @@ const createElection = async (req, res) => {
         if(electionType == "By Elections")
         {
             const {constituency} = req.body;
+            
+            const getElections = Election.findOne({electionType:'By Elections', isStarted:true, constituencies: { $in: [constituency] }})
+            if(getElections){
+                return res.status(500).json({msg: "Error. A By Election for this constituency is already underway."})
+            }
+
             constituencies.push(constituency._id)
             const votingAddresses = voterResponse.data.accountList.map(account => account.votingAddress)
             const citizenDataIDs = voterResponse.data.accountList.map(account => account.citizenDataId)
@@ -40,6 +46,11 @@ const createElection = async (req, res) => {
         }
         else if(electionType == "General Elections")
         {
+            const getElections = Election.findOne({electionType:'General Elections', isStarted:true})
+            if(getElections){
+                return res.status(500).json({msg: "Error. A General Election is already underway."})
+            }
+
             const constituencyEndpoint = `http://localhost:1002/api/v1/admin/constituency`
             const constituencyResponse = await axios.get(constituencyEndpoint,{
                 headers: {

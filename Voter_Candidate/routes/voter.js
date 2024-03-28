@@ -3,6 +3,7 @@ import express from 'express'
 const router = express.Router()
 
 import {
+    getCandidatesForVoter,
     getAllAccounts,
     createAccount,
     login,
@@ -19,6 +20,8 @@ import {
 router.route('/').get(getAllAccounts)
 router.route('/signup').post(createAccount)
 router.route('/login').post(login)
+
+router.route('/id/:id/getCandidates').post(getCandidatesForVoter)
 
 router.route('/id/:id').get( getAccountById)
 router.route('/cnic/:cnic').get(authMiddleware, getAccountByCnic)

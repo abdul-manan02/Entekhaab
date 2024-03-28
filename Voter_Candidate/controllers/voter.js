@@ -300,7 +300,69 @@ const castVote = async (req, res) => {
   }
 };
 
+const getCandidatesForVoter = async(req,res)=>{
+  try {
+      const {id} = req.params;
+      const {token, electionId} = req.body;
+      
+      // Fetch election details
+      const getElectionEndpoint = `http://localhost:1002/api/v1/admin/election/id/${electionId}`;
+      const electionResponse = await axios.get(getElectionEndpoint, {
+          headers: {
+              Authorization: `Bearer ${token}`
+          }
+      });
+      let election = electionResponse.data.election;
+
+      // Fetch voter details
+      const voter = await Voter_Candidate.findById({ _id: id });
+      const citizenEndpoint = `http://localhost:1000/api/v1/citizenData/id/${voter.citizenDataId}`;
+      const citizenResponse = await axios.get(citizenEndpoint);
+      const citizen = citizenResponse.data;
+      
+      let candidatesForConstituencies = {};
+
+      // Iterate over each candidate
+      for(let i=0; i<election.candidates.length; i++){
+          const getConstituencyEndpoint = `http://localhost:1002/api/v1/admin/constituency/id/${election.candidates[i].constituencyId}`;
+          const constituencyResponse = await axios.get(getConstituencyEndpoint);
+          const constituency = constituencyResponse.data;
+
+          let address = '';
+          
+          // Determine the address based on votingAddress
+          if (voter.votingAddress === "Permanent")
+              address = citizen.permanentAddress;
+          else if (voter.votingAddress === "Temporary")
+              address = citizenResponse.data.temporaryAddress;
+
+          // Check if candidate's constituency matches voter's address
+          if (address.city === constituency.position.city && constituency.position.areas.includes(address.area)) {
+              if (!candidatesForConstituencies[constituency._id])
+                  candidatesForConstituencies[constituency._id] = {
+                      constituencyData: constituency,
+                      candidates: []
+                  };
+
+              // Fetch candidate details
+              const getCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${election.candidates[i].candidateId}`;
+              const candidateResponse = await axios.get(getCandidateEndpoint);
+              const candidate = candidateResponse.data;
+              
+              // Add candidate data to candidatesForConstituencies
+              candidatesForConstituencies[constituency._id].candidates.push(candidate);
+          }
+      }
+
+      res.status(200).json({candidatesForConstituencies});
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }  
+};
+
+
 export {
+  getCandidatesForVoter,
   castVote,
   getAllAccounts,
   createAccount,
