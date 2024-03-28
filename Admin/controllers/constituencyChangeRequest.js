@@ -9,8 +9,11 @@ const createRequest = async(req,res) => {
             changeTo: req.body.changeTo
         }
 
+        console.log(req.body)
+
         if (req.file) {
             const file = req.file;
+            console.log('in file')
 
             const params = {
                 Bucket: process.env.BUCKET_NAME,
@@ -23,6 +26,7 @@ const createRequest = async(req,res) => {
         }
         
         const newRequest = new ConstituencyChangeRequest(request);
+        console.log('new req', newRequest)
         await newRequest.save();
         res.status(200).json({ newRequest: newRequest });
     } catch (error) {

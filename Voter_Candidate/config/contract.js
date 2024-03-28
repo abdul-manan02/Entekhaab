@@ -19,6 +19,11 @@ export const VOTE_CONTRACT_ABI = [
         type: "string",
       },
       {
+        internalType: "string",
+        name: "_candidateName",
+        type: "string",
+      },
+      {
         internalType: "uint256",
         name: "_age",
         type: "uint256",
@@ -34,9 +39,9 @@ export const VOTE_CONTRACT_ABI = [
         type: "string",
       },
       {
-        internalType: "string",
+        internalType: "uint256",
         name: "_DOB",
-        type: "string",
+        type: "uint256",
       },
       {
         internalType: "string",
@@ -62,6 +67,12 @@ export const VOTE_CONTRACT_ABI = [
         indexed: false,
         internalType: "string",
         name: "party",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "candidateName",
         type: "string",
       },
     ],
@@ -127,6 +138,25 @@ export const VOTE_CONTRACT_ABI = [
         type: "address",
       },
     ],
+    name: "candidateNames",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
     name: "constituencies",
     outputs: [
       {
@@ -149,9 +179,9 @@ export const VOTE_CONTRACT_ABI = [
     name: "DOBs",
     outputs: [
       {
-        internalType: "string",
+        internalType: "uint256",
         name: "",
-        type: "string",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -206,6 +236,11 @@ export const VOTE_CONTRACT_ABI = [
             type: "string",
           },
           {
+            internalType: "string",
+            name: "candidateName",
+            type: "string",
+          },
+          {
             internalType: "uint256",
             name: "age",
             type: "uint256",
@@ -221,9 +256,9 @@ export const VOTE_CONTRACT_ABI = [
             type: "string",
           },
           {
-            internalType: "string",
+            internalType: "uint256",
             name: "DOB",
-            type: "string",
+            type: "uint256",
           },
           {
             internalType: "string",
@@ -344,4 +379,4 @@ export const VOTE_CONTRACT_ABI = [
 ];
 
 export const VOTE_CONTRACT_ADDRESS =
-  "0xd48faC91b2927106ded24891b3430c60F1CDa9A9";
+  "0xEa5F9cC2d9306D91CE48B18E0e276a0d0Bce4a4C";

@@ -7,6 +7,7 @@ import {
   VOTE_CONTRACT_ADDRESS,
 } from "../config/contract.js";
 import Web3 from "web3";
+import ElectionVotes from "../models/election_votes.js";
 
 const getAllAccounts = async (req, res) => {
   try {
@@ -264,102 +265,151 @@ const changeSelectedSim = async (req, res) => {
 };
 
 const convertBigIntToReadableDate = (bigIntTimestamp) => {
-    // Convert BigInt to regular number
-    const timestamp = Number(bigIntTimestamp);
-    // Convert seconds to milliseconds
-    const milliseconds = timestamp * 1000;
-    // Create a Date object
-    const date = new Date(milliseconds);
-    // Format the date as desired
-    const formattedDate = date.toLocaleString(); // This is just an example, you can use other methods for formatting
-    return formattedDate;
+  // Convert BigInt to regular number
+  const timestamp = Number(bigIntTimestamp);
+  // Convert seconds to milliseconds
+  const milliseconds = timestamp * 1000;
+  // Create a Date object
+  const date = new Date(milliseconds);
+  // Format the date as desired
+  const formattedDate = date.toLocaleString(); // This is just an example, you can use other methods for formatting
+  return formattedDate;
 };
 
 const castVote = async (req, res) => {
   try {
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider("https://rpc.ankr.com/polygon_mumbai")
-    );
-    web3.eth.accounts.wallet.add(process.env.WEB3_PRIVATE_KEY);
-    const defaultAccount = web3.eth.accounts.wallet[0].address;
+    // const web3 = new Web3(
+    //   new Web3.providers.HttpProvider("https://rpc.ankr.com/polygon_mumbai")
+    // );
+    // web3.eth.accounts.wallet.add(process.env.WEB3_PRIVATE_KEY);
+    // const defaultAccount = web3.eth.accounts.wallet[0].address;
 
-    // Instantiate the contract
-    const contractInstance = new web3.eth.Contract(
-      VOTE_CONTRACT_ABI,
-      VOTE_CONTRACT_ADDRESS
-    );
+    // // Instantiate the contract
+    // const contractInstance = new web3.eth.Contract(
+    //   VOTE_CONTRACT_ABI,
+    //   VOTE_CONTRACT_ADDRESS
+    // );
 
-    const startTimestamp = await contractInstance.methods.startTime().call();
-    const endTimestamp = await contractInstance.methods.endTime().call();
+    // const startTimestamp = await contractInstance.methods.startTime().call();
+    // const endTimestamp = await contractInstance.methods.endTime().call();
 
-        console.log(convertBigIntToReadableDate(startTimestamp), convertBigIntToReadableDate(endTimestamp))
-    res.status(200).json({ message: "Election started successfully" });
+    const {
+      party,
+      candidateName,
+      age,
+      maritalStatus,
+      gender,
+      dob,
+      constituency,
+      voterId,
+      electionId,
+    } = req.body;
+
+    // Create an instance of the ElectionVotes model
+    const newVote = new ElectionVotes({
+      party,
+      candidateName,
+      age,
+      maritalStatus,
+      gender,
+      dob,
+      constituency,
+      voterId,
+    });
+
+    // Save the instance to the database
+    const savedVote = await newVote.save();
+
+    // console.log(
+    //   convertBigIntToReadableDate(startTimestamp),
+    //   convertBigIntToReadableDate(endTimestamp)
+    // );
+
+    const electionEndpoint = `http://localhost:1002/api/v1/admin/election/id/${electionId}/voteStatus`;
+    const electionResponse = await axios.post(electionEndpoint, {
+      voterId: voterId,
+      status: true,
+    });
+
+    res.status(200).json({ message: "Vote casted successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: error.message });
   }
 };
 
-const getCandidatesForVoter = async(req,res)=>{
+// const transaction = await contractInstance.methods
+//   .startElection()
+//   .send({ from: defaultAccount });
+
+// const transactionHash = transaction.transactionHash;
+
+// console.log('hash', transactionHash)
+
+const getCandidatesForVoter = async (req, res) => {
   try {
-      const {id} = req.params;
-      const {token, electionId} = req.body;
-      
-      // Fetch election details
-      const getElectionEndpoint = `http://localhost:1002/api/v1/admin/election/id/${electionId}`;
-      const electionResponse = await axios.get(getElectionEndpoint, {
-          headers: {
-              Authorization: `Bearer ${token}`
-          }
-      });
-      let election = electionResponse.data.election;
+    const { id } = req.params;
+    const { token, electionId } = req.body;
 
-      // Fetch voter details
-      const voter = await Voter_Candidate.findById({ _id: id });
-      const citizenEndpoint = `http://localhost:1000/api/v1/citizenData/id/${voter.citizenDataId}`;
-      const citizenResponse = await axios.get(citizenEndpoint);
-      const citizen = citizenResponse.data;
-      
-      let candidatesForConstituencies = {};
+    // Fetch election details
+    const getElectionEndpoint = `http://localhost:1002/api/v1/admin/election/id/${electionId}`;
+    const electionResponse = await axios.get(getElectionEndpoint, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    let election = electionResponse.data.election;
 
-      // Iterate over each candidate
-      for(let i=0; i<election.candidates.length; i++){
-          const getConstituencyEndpoint = `http://localhost:1002/api/v1/admin/constituency/id/${election.candidates[i].constituencyId}`;
-          const constituencyResponse = await axios.get(getConstituencyEndpoint);
-          const constituency = constituencyResponse.data;
+    // Fetch voter details
+    const voter = await Voter_Candidate.findById({ _id: id });
+    const citizenEndpoint = `http://localhost:1000/api/v1/citizenData/id/${voter.citizenDataId}`;
+    const citizenResponse = await axios.get(citizenEndpoint);
+    const citizen = citizenResponse.data;
 
-          let address = '';
-          
-          // Determine the address based on votingAddress
-          if (voter.votingAddress === "Permanent")
-              address = citizen.permanentAddress;
-          else if (voter.votingAddress === "Temporary")
-              address = citizenResponse.data.temporaryAddress;
+    let candidatesForConstituencies = {};
 
-          // Check if candidate's constituency matches voter's address
-          if (address.city === constituency.position.city && constituency.position.areas.includes(address.area)) {
-              if (!candidatesForConstituencies[constituency._id])
-                  candidatesForConstituencies[constituency._id] = {
-                      constituencyData: constituency,
-                      candidates: []
-                  };
+    // Iterate over each candidate
+    for (let i = 0; i < election.candidates.length; i++) {
+      const getConstituencyEndpoint = `http://localhost:1002/api/v1/admin/constituency/id/${election.candidates[i].constituencyId}`;
+      const constituencyResponse = await axios.get(getConstituencyEndpoint);
+      const constituency = constituencyResponse.data;
 
-              // Fetch candidate details
-              const getCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${election.candidates[i].candidateId}`;
-              const candidateResponse = await axios.get(getCandidateEndpoint);
-              const candidate = candidateResponse.data;
-              
-              // Add candidate data to candidatesForConstituencies
-              candidatesForConstituencies[constituency._id].candidates.push(candidate);
-          }
+      let address = "";
+
+      // Determine the address based on votingAddress
+      if (voter.votingAddress === "Permanent")
+        address = citizen.permanentAddress;
+      else if (voter.votingAddress === "Temporary")
+        address = citizenResponse.data.temporaryAddress;
+
+      // Check if candidate's constituency matches voter's address
+      if (
+        address.city === constituency.position.city &&
+        constituency.position.areas.includes(address.area)
+      ) {
+        if (!candidatesForConstituencies[constituency._id])
+          candidatesForConstituencies[constituency._id] = {
+            constituencyData: constituency,
+            candidates: [],
+          };
+
+        // Fetch candidate details
+        const getCandidateEndpoint = `http://localhost:1001/api/v1/voter/id/${election.candidates[i].candidateId}`;
+        const candidateResponse = await axios.get(getCandidateEndpoint);
+        const candidate = candidateResponse.data;
+
+        // Add candidate data to candidatesForConstituencies
+        candidatesForConstituencies[constituency._id].candidates.push(
+          candidate
+        );
       }
+    }
 
-      res.status(200).json({candidatesForConstituencies});
+    res.status(200).json({ candidatesForConstituencies });
   } catch (error) {
-      res.status(500).json({ error: error.message });
-  }  
+    res.status(500).json({ error: error.message });
+  }
 };
-
 
 export {
   getCandidatesForVoter,

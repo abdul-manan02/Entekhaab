@@ -13,10 +13,11 @@ contract EVoting {
     mapping(address => uint256) public ages;
     mapping(address => string) public maritalStatuses;
     mapping(address => string) public genders;
-    mapping(address => string) public DOBs;
+    mapping(address => uint256) public DOBs;
     mapping(address => string) public constituencies;
+    mapping(address => string) public candidateNames; // Mapping to store candidate names
 
-    event VoteCast(address indexed voter, string party);
+    event VoteCast(address indexed voter, string party, string candidateName); // Updated event definition
     event WinnerDeclared(string winner, uint256 votes);
 
     modifier onlyAdmin() {
@@ -32,18 +33,14 @@ contract EVoting {
         _;
     }
 
-    modifier onlyOnce() {
-        require(startTime == 0, "Election has already started");
-        _;
-    }
-
     struct VoteData {
         address voter;
         string party;
+        string candidateName; // Added candidateName field to the struct
         uint256 age;
         string maritalStatus;
         string gender;
-        string DOB;
+        uint256 DOB;
         string constituency;
     }
 
@@ -51,16 +48,15 @@ contract EVoting {
         admin = msg.sender;
     }
 
-    function startElection() external onlyAdmin onlyOnce {
+    function startElection() external onlyAdmin {
         startTime = block.timestamp;
-        endTime = startTime + 1 minutes;
+        endTime = startTime + 30 minutes;
     }
 
-    function vote(string memory _party, uint256 _age, string memory _maritalStatus, string memory _gender, string memory _DOB, string memory _constituency)
+    function vote(string memory _party, string memory _candidateName, uint256 _age, string memory _maritalStatus, string memory _gender, uint256 _DOB, string memory _constituency)
         external
         onlyDuringVotingPeriod
     {
-        require(votes[msg.sender] == Party(0), "You have already voted");
         votes[msg.sender] = parseParty(_party);
         voteCounts[_party]++;
         ages[msg.sender] = _age;
@@ -68,8 +64,9 @@ contract EVoting {
         genders[msg.sender] = _gender;
         DOBs[msg.sender] = _DOB;
         constituencies[msg.sender] = _constituency;
-        voters.push(msg.sender); // Add voter to the voters array
-        emit VoteCast(msg.sender, _party);
+        candidateNames[msg.sender] = _candidateName; // Store candidate name
+        voters.push(msg.sender);
+        emit VoteCast(msg.sender, _party, _candidateName); // Emit event with candidate name
     }
 
     function parseParty(string memory _party) internal pure returns (Party) {
@@ -84,8 +81,8 @@ contract EVoting {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
     }
 
-    function getWinnerParty() external view returns (string memory) {
-        require(block.timestamp > endTime, "Voting is still ongoing");
+     function getWinnerParty() external view returns (string memory) {
+        //require(block.timestamp > endTime, "Voting is still ongoing");
         string memory winner = "";
         uint256 maxVotes = 0;
         for (uint8 i = 0; i < 4; i++) {
@@ -99,9 +96,20 @@ contract EVoting {
     }
 
     function getAllVotes() external view returns (VoteData[] memory) {
-        VoteData[] memory voteDataArray = new VoteData[](voters.length);
         uint256 index = 0;
-
+        
+        // Determine the length of the array
+        for (uint256 i = 0; i < voters.length; i++) {
+            if (votes[voters[i]] != Party(0)) {
+                index++;
+            }
+        }
+        
+        // Initialize the array with the correct length
+        VoteData[] memory voteDataArray = new VoteData[](index);
+        
+        // Populate the array with vote data
+        index = 0;
         for (uint256 i = 0; i < voters.length; i++) {
             address voter = voters[i];
             Party party = votes[voter];
@@ -110,6 +118,7 @@ contract EVoting {
                 voteDataArray[index] = VoteData(
                     voter,
                     getPartyName(party),
+                    candidateNames[voter], // Retrieve candidate name
                     ages[voter],
                     maritalStatuses[voter],
                     genders[voter],
@@ -120,16 +129,10 @@ contract EVoting {
             }
         }
 
-        // Create a new array with the correct length
-        VoteData[] memory result = new VoteData[](index);
-        for (uint256 j = 0; j < index; j++) {
-            result[j] = voteDataArray[j];
-        }
-
-        return result;
+        return voteDataArray;
     }
 
-    function getPartyName(Party _party) internal pure returns (string memory) {
+     function getPartyName(Party _party) internal pure returns (string memory) {
         if (_party == Party.PMLN) return "PMLN";
         else if (_party == Party.PTI) return "PTI";
         else if (_party == Party.PPP) return "PPP";
