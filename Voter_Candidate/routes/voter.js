@@ -12,7 +12,8 @@ import {
     changeSelectedAddress,
     changeSelectedSim, 
     getElectionsCreated,
-    getElectionsStarted
+    getElectionsStarted,
+    castVote
 } from '../controllers/voter.js'
 
 router.route('/').get(getAllAccounts)
@@ -26,6 +27,8 @@ router.route('/id/:id/changeAddress').patch(authMiddleware, changeSelectedAddres
 router.route('/id/:id/getElections').get(authMiddleware, getElections)
 router.route('/id/:id/getElections/created').get(authMiddleware, getElectionsCreated)
 router.route('/id/:id/getElections/started').get(authMiddleware, getElectionsStarted)
+router.route('/castVote/id/:id').post(castVote)
+
 
 
 export default router
