@@ -5,6 +5,10 @@ const electionVotesSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  electionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+  },
   candidateName: {
     type: String,
     required: true,
@@ -29,9 +33,8 @@ const electionVotesSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  voterId: {
-    type: mongoose.Schema.Types.ObjectId,
-    default: null,
+  transcationHash: {
+    type: String,
     required: true,
   },
 });

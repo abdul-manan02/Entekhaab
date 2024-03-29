@@ -1,5 +1,10 @@
 import Election from "../models/election.js";
 import axios from "axios";
+import Web3 from "web3";
+import {
+  VOTE_CONTRACT_ADDRESS,
+  VOTE_CONTRACT_ABI,
+} from "../config/contract.js";
 
 const createElection = async (req, res) => {
   try {
@@ -153,6 +158,29 @@ const startElection = async (req, res) => {
         .status(400)
         .json({ message: "Election has already been started" });
 
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider("https://rpc.ankr.com/polygon_mumbai")
+    );
+
+    web3.eth.accounts.wallet.add(process.env.WEB3_PRIVATE_KEY);
+    const defaultAccount = web3.eth.accounts.wallet[0].address;
+
+    // Instantiate the contract
+    const contractInstance = new web3.eth.Contract(
+      VOTE_CONTRACT_ABI,
+      VOTE_CONTRACT_ADDRESS
+    );
+
+    await contractInstance.methods
+      .startElection()
+      .send({ from: defaultAccount });
+
+    const startTimestamp = await contractInstance.methods.startTime().call();
+    const endTimestamp = await contractInstance.methods.endTime().call();
+
+    console.log("start", startTimestamp);
+    console.log("end", endTimestamp);
+
     election.isStarted = true;
     await election.save();
 
@@ -209,7 +237,7 @@ const finishElection = async (req, res) => {
 };
 
 const updateVoteStatus = async (req, res) => {
-  console.log('in update status')
+  console.log("in update status");
   try {
     const { id } = req.params;
     const { status, voterId } = req.body;

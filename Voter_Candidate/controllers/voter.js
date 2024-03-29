@@ -2,11 +2,12 @@ import Voter_Candidate from "../models/voter_candidate.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import axios from "axios";
+import Web3 from "web3";
 import {
   VOTE_CONTRACT_ABI,
   VOTE_CONTRACT_ADDRESS,
-} from "../config/contract.js";
-import Web3 from "web3";
+} from "../../Admin/config/contract.js";
+
 import ElectionVotes from "../models/election_votes.js";
 
 const getAllAccounts = async (req, res) => {
@@ -278,20 +279,17 @@ const convertBigIntToReadableDate = (bigIntTimestamp) => {
 
 const castVote = async (req, res) => {
   try {
-    // const web3 = new Web3(
-    //   new Web3.providers.HttpProvider("https://rpc.ankr.com/polygon_mumbai")
-    // );
-    // web3.eth.accounts.wallet.add(process.env.WEB3_PRIVATE_KEY);
-    // const defaultAccount = web3.eth.accounts.wallet[0].address;
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider("https://rpc.ankr.com/polygon_mumbai")
+    );
+    web3.eth.accounts.wallet.add(process.env.WEB3_PRIVATE_KEY);
+    const defaultAccount = web3.eth.accounts.wallet[0].address;
 
-    // // Instantiate the contract
-    // const contractInstance = new web3.eth.Contract(
-    //   VOTE_CONTRACT_ABI,
-    //   VOTE_CONTRACT_ADDRESS
-    // );
-
-    // const startTimestamp = await contractInstance.methods.startTime().call();
-    // const endTimestamp = await contractInstance.methods.endTime().call();
+    // Instantiate the contract
+    const contractInstance = new web3.eth.Contract(
+      VOTE_CONTRACT_ABI,
+      VOTE_CONTRACT_ADDRESS
+    );
 
     const {
       party,
@@ -301,9 +299,31 @@ const castVote = async (req, res) => {
       gender,
       dob,
       constituency,
-      voterId,
       electionId,
+      voterId
     } = req.body;
+
+    const _party = party;
+    const _candidateName = candidateName;
+    const _age = parseInt(age);
+    const _maritalStatus = maritalStatus;
+    const _gender = gender;
+    const _DOB = parseInt(dob);
+    const _constituency = constituency;
+
+    const transaction = await contractInstance.methods
+      .vote(
+        _party,
+        _candidateName,
+        _age,
+        _maritalStatus,
+        _gender,
+        _DOB,
+        _constituency
+      )
+      .send({ from: defaultAccount });
+
+    const transcationHash = transaction.transactionHash;
 
     // Create an instance of the ElectionVotes model
     const newVote = new ElectionVotes({
@@ -314,16 +334,12 @@ const castVote = async (req, res) => {
       gender,
       dob,
       constituency,
-      voterId,
+      transcationHash,
+      electionId,
     });
 
     // Save the instance to the database
     const savedVote = await newVote.save();
-
-    // console.log(
-    //   convertBigIntToReadableDate(startTimestamp),
-    //   convertBigIntToReadableDate(endTimestamp)
-    // );
 
     const electionEndpoint = `http://localhost:1002/api/v1/admin/election/id/${electionId}/voteStatus`;
     const electionResponse = await axios.post(electionEndpoint, {
@@ -331,20 +347,20 @@ const castVote = async (req, res) => {
       status: true,
     });
 
-    res.status(200).json({ message: "Vote casted successfully" });
+    res.status(200).json({
+      message: "Vote casted successfully",
+      transactionHash: transcationHash,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: error.message });
   }
 };
 
-// const transaction = await contractInstance.methods
-//   .startElection()
-//   .send({ from: defaultAccount });
-
-// const transactionHash = transaction.transactionHash;
-
-// console.log('hash', transactionHash)
+// console.log(
+//   convertBigIntToReadableDate(startTimestamp),
+//   convertBigIntToReadableDate(endTimestamp)
+// );
 
 const getCandidatesForVoter = async (req, res) => {
   try {

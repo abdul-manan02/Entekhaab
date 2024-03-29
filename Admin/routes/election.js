@@ -23,7 +23,7 @@ router.route("/created").get(getCreatedElections);
 router.route("/started").get(getStartedElections);
 router.route("/finished").get(authMiddleware, getFinishedElections);
 router.route("/id/:id").get(authMiddleware, getElection);
-router.route("/id/:id/start").patch(authMiddleware, startElection);
+router.route("/id/:id/start").put(authMiddleware, startElection);
 router.route("/id/:id/finish").patch(authMiddleware, finishElection);
 router.route("/id/:id/addCandidate").patch(authMiddleware, addCandidate);
 router.route("/id/:id/voteStatus").post(updateVoteStatus);
