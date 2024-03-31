@@ -1,0 +1,1 @@
+The Node.js Microservices for a Blockchain-Based Voting & Management System which employees multi-factor authentication and encryption to verify the user's identity, and ensure the transparency, immutability and verifiiability of the user's vote.
