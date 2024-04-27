@@ -300,7 +300,7 @@ const castVote = async (req, res) => {
       dob,
       constituency,
       electionId,
-      voterId
+      voterId,
     } = req.body;
 
     const _party = party;
@@ -361,6 +361,41 @@ const castVote = async (req, res) => {
 //   convertBigIntToReadableDate(startTimestamp),
 //   convertBigIntToReadableDate(endTimestamp)
 // );
+
+const verifyVote = async (req, res) => {
+  try {
+    const { transactionHash } = req.body;
+    const data = await ElectionVotes.findOne({
+      transcationHash: transactionHash,
+    });
+
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider("https://rpc.ankr.com/polygon_mumbai")
+    );
+    web3.eth.accounts.wallet.add(process.env.WEB3_PRIVATE_KEY);
+    const defaultAccount = web3.eth.accounts.wallet[0].address;
+
+    // Instantiate the contract
+    const contractInstance = new web3.eth.Contract(
+      VOTE_CONTRACT_ABI,
+      VOTE_CONTRACT_ADDRESS
+    );
+
+    const transaction = await web3.eth.getTransaction(transactionHash);
+
+    // Extract the vote data from the transaction input
+    const voteData = web3.utils.hexToAscii(transaction.input);
+
+    console.log(voteData);
+    if (!data) {
+      res.status(404).json({ message: "No data against this transaction" });
+    }
+
+    res.status(200).json({ data: data });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 const getCandidatesForVoter = async (req, res) => {
   try {
@@ -440,4 +475,5 @@ export {
   changeSelectedSim,
   getElectionsCreated,
   getElectionsStarted,
+  verifyVote,
 };
